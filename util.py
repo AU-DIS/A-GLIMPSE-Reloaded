@@ -117,3 +117,6 @@ def compareRemoteAndLocalKnowledgegraphQueries(uid):
                 print(q)
         except:
             print("error")
+
+
+main2()

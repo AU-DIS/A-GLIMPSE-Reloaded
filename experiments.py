@@ -406,7 +406,7 @@ def runGLIMPSEDynamicExperiment(k_pct, e,version, answers_version, kg_path, spli
         logging.info("Finished for user: " + user_ids[idx_u])
     pd.DataFrame(rows).to_csv("experiments_results/v"+str(version)+ "T#" +str(KG.number_of_triples())+"_E#"+str(KG.number_of_entities()) +"K#"+str(int(k))+"e#"+str(e)+"S"+str(split)+ ".csv")
 
-def makeRDFData(user_log_answer_files,path, KG: KnowledgeGraph):
+def makeRDFData(user_log_answer_files,path, KG):
     # filter out logs of size < 10
     answers = []
     uids = []
@@ -661,6 +661,7 @@ def main():
     version = args.version
     answer_version = args.version_answers
     kg_path = args.KG_path
+    kg_path = "dbpedia3.9/"
 
     if args.method == 'glimpse':
         e = float(args.epsilon)

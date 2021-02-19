@@ -7,13 +7,14 @@ import logging
 
 from collections import defaultdict
 from scipy.sparse import csr_matrix
+import bz2
 
 from .algorithms import query_vector, random_walk_with_restart, query_vector_rdf
 
 # TODO: Replace these data directories with your own paths
 FREEBASE_DATA_DIR = '/x/tsafavi/data/WebQSDP/data/'
 YAGO_DATA_DIR = '/x/tsafavi/data/yago3/'
-DBPEDIA_DATA_DIR = '/Users/jacobcrawford/Desktop/Thesis/code/KG_Data/DBPedia/'
+DBPEDIA_DATA_DIR = '/mnt/d/A-GLIMPSE/'
 
 
 class KnowledgeGraph(object):
@@ -434,7 +435,7 @@ class DBPedia(KnowledgeGraph):
     def load(self, head=None, strip=True):
         files = [f for f in os.listdir(self.rdf_gz_)]
         for f in files:
-            with gzip.open(self.rdf_gz_ + "/" + f, 'rt') as f:
+            with bz2.open(self.rdf_gz_ + "/" + f, 'rt') as f:
                 for line in f:
                     if line.startswith("#"):
                         continue
