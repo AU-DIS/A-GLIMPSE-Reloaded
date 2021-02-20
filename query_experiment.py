@@ -52,6 +52,3 @@ def synthetic_experiment():
     mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
         test_split, summary)
     print(mean_accuracy, total_entities, total_count)
-
-
-#synthetic_experiment()

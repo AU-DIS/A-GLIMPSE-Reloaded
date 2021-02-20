@@ -134,6 +134,7 @@ def generate_queries_by_mid(KG, topic_mid, n_mid_queries):
         q1
         q3
 
+
     If the following requirements are not met, synthetic queries with the
     specified topic mid are generated.
     """

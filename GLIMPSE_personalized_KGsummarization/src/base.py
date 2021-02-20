@@ -257,10 +257,10 @@ class KnowledgeGraph(object):
         raise NotImplementedError
 
     def topic_dir(self):
-        raise NotImplementedError
+        return "topic_dir"
 
     def mid_dir(self):
-        raise NotImplementedError
+        return "mid_dir"
 
     def topics(self):
         raise NotImplementedError
