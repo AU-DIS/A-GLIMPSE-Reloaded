@@ -22,7 +22,7 @@ def run_glimpse_once():
     version = "3"
     e = 0.1
     k = 0.01
-    os.system('python3 experiments.py'
+    os.system('cd originalprojects && python3 experiments.py'
               + ' --method glimpse'
               + ' --percent-triples ' + str(k)
               + ' --version ' + version
@@ -33,23 +33,25 @@ def run_glimpse_once():
               )
 
 
-def generate_queries():
+def synthetic_experiment():
     kg = DBPedia('DBPedia3.9/')
     kg.load()
     number_of_topics = 200
-    topics = kg.entity_names().keys()
-    topics = [topics[x] for x in range(number_of_topics)]
+    topics = kg.entity_names()
+    topic_keys = [x for x in topics.keys()]
+    topics = [topics[topic_keys[x]] for x in range(number_of_topics)]
+    topic_keys = []
     queries = [generate_query(kg, topic) for topic in topics]
     answers = [x['Parse']['Answers'] for x in queries]
     answer_entity_names = [[a_name['EntityName']
                             for a_name in answer] for answer in answers]
     train_split, test_split = makeTrainingTestSplit(answer_entity_names, kg)
-    e = 0.01
+    e = 0.1
     k = 0.01
-    summary = GLIMPSE(kg, k, test_split, e)
+    summary = GLIMPSE(kg, k, train_split, e)
     mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
         test_split, summary)
     print(mean_accuracy, total_entities, total_count)
 
 
-# generate_queries()
+#synthetic_experiment()
