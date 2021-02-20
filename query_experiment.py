@@ -1,26 +1,55 @@
 import os
 from GLIMPSE_personalized_KGsummarization.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
 from GLIMPSE_personalized_KGsummarization.src.query import generate_query
+from experiments import calculateAccuracyAndTotals
+from GLIMPSE_personalized_KGsummarization.src.glimpse import GLIMPSE, Summary
 
-#kg = DBPedia('DBPedia3.9/')
-#kg.load()
 
-#print("Loaded KG")
-#input()
-K = [10**-i for i in range(1, 6)]
-E = [1e-2]
+def makeTrainingTestSplit(answers, kg):
+    train_split = [[entity for entity in answer_list if kg.is_entity(
+        entity)] for answer_list in answers[0:140]]
+    test_split = [[entity for entity in answer_list if kg.is_entity(
+        entity)] for answer_list in answers[140:]]
 
-answer_version = "2"
-version = "3"
-e = 0.1
-k = 0.01
+    return train_split, test_split
 
-os.system('python3 experiments.py'
-                  + ' --method glimpse'
-                  + ' --percent-triples ' + str(k)
-                  + ' --version ' + version
-                  + ' --version-answers ' + answer_version
-                  + ' --epsilon ' + str(e)
-#                  + ' > ' + 'GLIMPSE' + version+'a' + answer_version + ' #K' + str(k) + '#E' + str(e) + '.out'
-#                  + ' &')
-)
+
+def run_glimpse_once():
+    K = [10**-i for i in range(1, 6)]
+    E = [1e-2]
+
+    answer_version = "2"
+    version = "3"
+    e = 0.1
+    k = 0.01
+    os.system('python3 experiments.py'
+              + ' --method glimpse'
+              + ' --percent-triples ' + str(k)
+              + ' --version ' + version
+              + ' --version-answers ' + answer_version
+              + ' --epsilon ' + str(e)
+              #                  + ' > ' + 'GLIMPSE' + version+'a' + answer_version + ' #K' + str(k) + '#E' + str(e) + '.out'
+              #                  + ' &')
+              )
+
+
+def generate_queries():
+    kg = DBPedia('DBPedia3.9/')
+    kg.load()
+    number_of_topics = 200
+    topics = kg.entity_names().keys()
+    topics = [topics[x] for x in range(number_of_topics)]
+    queries = [generate_query(kg, topic) for topic in topics]
+    answers = [x['Parse']['Answers'] for x in queries]
+    answer_entity_names = [[a_name['EntityName']
+                            for a_name in answer] for answer in answers]
+    train_split, test_split = makeTrainingTestSplit(answer_entity_names, kg)
+    e = 0.01
+    k = 0.01
+    summary = GLIMPSE(kg, k, test_split, e)
+    mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
+        test_split, summary)
+    print(mean_accuracy, total_entities, total_count)
+
+
+# generate_queries()

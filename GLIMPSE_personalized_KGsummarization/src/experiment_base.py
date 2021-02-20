@@ -444,7 +444,7 @@ class DBPedia(KnowledgeGraph):
                     e1, r = fact[:2]
                     e2 = ' '.join(fact[2:])
 
-                    if not e1 or not e2:
+                    if (not e1 or not e2):
                         continue
 
 
