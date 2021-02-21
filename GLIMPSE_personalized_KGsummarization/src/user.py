@@ -102,6 +102,56 @@ def generate_queries_by_topic(KG, topic, n_topic_queries, n_topic_mids):
 
     return query_log
 
+def generate_synthetic_queries_by_topic(KG, topic_mids, n_topic_queries, n_topic_mids):
+    """
+    :param KG: KnowledgeGraph
+    :param topic: name of querying topic ("art", "music")
+    :param n_topic_queries: number of queries to generate
+    :param n_topic_mids: number of unique topic entities in generated queries
+    :return query_log: list of dict
+
+    Assumes that there is a directory called
+    <KG.topic_dir()> that contains files in the format of <topic>.list.
+    Each of these files should list the IDs of queries in the topic,
+    one query ID per line.
+    Each query should be saved with the name <query ID>.json in
+    a bdirectory called <KG.query_dir()>.
+
+    Example directory structure:
+
+    <KG.topic_dir()>/
+        art.list
+        music.list
+        geography.list
+    <KG.query_dir()>/
+        q1.json
+        q2.json
+        q3.json
+        q4.json
+        q5.json
+
+    Assuming that q1 and q3 are about art, the art.list file
+    should contain the following:
+        q1
+        q3
+    """
+    # Generate the number of queries per topic MID
+    p = np.random.uniform(size=n_topic_mids)
+    p /= np.sum(p)
+    queries_per_mid = np.int64(np.ceil(p * n_topic_queries))
+
+    topic_mids = random.choices(topic_mids, k=n_topic_mids)
+
+    # Obtain a selection of queries for each topic MID
+    query_log = []
+    for topic_mid, n_mid_queries in zip(topic_mids, queries_per_mid):
+        n_mid_queries = min(n_mid_queries, n_topic_queries - len(query_log))
+        query_log.extend(
+                generate_queries_by_mid(KG, topic_mid, n_mid_queries)
+        )
+
+    return query_log
+
 def generate_queries_by_mid(KG, topic_mid, n_mid_queries):
     """
     :param KG: KnowledgeGraph

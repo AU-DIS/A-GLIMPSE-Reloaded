@@ -3,6 +3,7 @@ from GLIMPSE_personalized_KGsummarization.src.experiment_base import DBPedia, Kn
 from GLIMPSE_personalized_KGsummarization.src.query import generate_query
 from experiments import calculateAccuracyAndTotals
 from GLIMPSE_personalized_KGsummarization.src.glimpse import GLIMPSE, Summary
+import GLIMPSE_personalized_KGsummarization.src.user as user
 
 kg = ""
 
@@ -23,15 +24,14 @@ def load_kg():
     kg.load()
 
 
-def run_glimpse_on_queries(queries, kg, n):
+def run_glimpse_on_queries(queries, kg, n, e, k):
     answers = [x['Parse']['Answers'] for x in queries]
     answer_entity_names = [[a_name['EntityName']
                             for a_name in answer] for answer in answers]
-    train_split, test_split = makeTrainingTestSplit(answer_entity_names, kg)
-    e = 0.1
-    k = 0.01
+    train_split, test_split = makeTrainingTestSplit(answer_entity_names, kg, n)
+    #e = 0.1
+    #k = 0.01
     summary = GLIMPSE(kg, k, train_split, e)
     mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
         test_split, summary)
     print(mean_accuracy, total_entities, total_count)
-
