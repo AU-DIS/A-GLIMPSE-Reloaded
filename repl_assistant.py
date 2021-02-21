@@ -3,20 +3,9 @@ from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
 from glimpse.src.query import generate_query
 from experiments import calculateAccuracyAndTotals
 from glimpse.src.glimpse import GLIMPSE, Summary
-import glimpse.src.user as user
+from util import makeTrainingTestSplit
 
 kg = ""
-
-
-def makeTrainingTestSplit(answers, kg, n):
-    split = int(0.7 * n)
-    train_split = [[entity for entity in answer_list if kg.is_entity(
-        entity)] for answer_list in answers[0:split]]
-    test_split = [[entity for entity in answer_list if kg.is_entity(
-        entity)] for answer_list in answers[split:]]
-
-    return train_split, test_split
-
 
 def load_kg():
     global kg

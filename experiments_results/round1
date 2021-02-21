@@ -1,0 +1,30 @@
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+Loaded: <_io.TextIOWrapper encoding='UTF-8'>
+>>> import round_experiment as r
+>>> r.round_experiment(repl.kg)
+[2021-02-21 16:21:53,789] - KG entities: 6589072
+[2021-02-21 16:21:53,789] - KG triples: 47408064
+[2021-02-21 16:21:53,789] - Running for K=474080.64, e=0.01
+[2021-02-21 16:21:53,789] -   Running GLIMPSE on round 0
+[2021-02-21 16:27:53,889] - T delta not zero
+[2021-02-21 16:27:53,889] - 16863454
+[2021-02-21 16:38:33,947] - lazy 38
+[2021-02-21 16:38:33,948] - updates 474044
+[2021-02-21 16:38:33,948] - Size of summary before random fill: 474081
+[2021-02-21 16:38:47,615] -  Done
+[2021-02-21 16:38:47,621] -       Summary  accuracy 0.9979423868312757
+[2021-02-21 16:38:47,622] -       Summary  accuracy 0.9979423868312757
+[2021-02-21 16:38:47,624] -       Summary  accuracy 0.724596342069322
+[2021-02-21 16:38:47,626] -       Summary  accuracy 0.6589008879936508
+[2021-02-21 16:38:47,629] -       Summary  accuracy 0.6203756846741617
+[2021-02-21 16:38:47,632] -       Summary  accuracy 0.5907532044357113
+[2021-02-21 16:38:47,637] -       Summary  accuracy 0.5789278204514402
+[2021-02-21 16:38:47,642] -       Summary  accuracy 0.56071842563362
+[2021-02-21 16:38:47,648] -       Summary  accuracy 0.5477368360416124
+[2021-02-21 16:38:47,656] -       Summary  accuracy 0.5396398731999572

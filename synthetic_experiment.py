@@ -15,23 +15,7 @@ import logging
 import argparse
 import numpy as np
 import pandas as pd
-
-
-def extract_answers_from_queries(kg, queries):
-    return [
-        answer_query(kg, q) for q in queries
-    ]
-
-
-def makeTrainingTestSplit(answers, kg):
-    n = len(answers)
-    split = int(0.7 * n)
-    train_split = [[entity for entity in answer_list if kg.is_entity(
-        entity)] for answer_list in answers[0:split]]
-    test_split = [[entity for entity in answer_list if kg.is_entity(
-        entity)] for answer_list in answers[split:]]
-
-    return train_split, test_split
+from util import extract_answers_from_queries, makeTrainingTestSplit, calculateAccuracyAndTotals
 
 
 def runsyntheticGLIMPSEExperimentOnce(topics, kg, e=0.1, k_pct=0.01, number_of_users=3, no_per_user=200):
@@ -79,5 +63,5 @@ def runsyntheticGLIMPSEExperimentOnce(topics, kg, e=0.1, k_pct=0.01, number_of_u
         rows.append({'match': total_count, 'total': total_entities,
                      '%': mean_accuracy, 'runtime': t2 - t1})
 
-    pd.DataFrame(rows).to_csv("experiments_results/v" + "test" + "T#" + str(kg.number_of_triples()) + "_E#" + str(
+    pd.DataFrame(rows).to_csv("experiments_results/r" + "test" + "T#" + str(kg.number_of_triples()) + "_E#" + str(
         kg.number_of_entities()) + "K#" + str(int(k)) + "e#" + str(e) + ".csv")
