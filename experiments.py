@@ -10,9 +10,9 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from GLIMPSE_personalized_KGsummarization.src.algorithms import query_vector, random_walk_with_restart, query_vector_rdf
-from GLIMPSE_personalized_KGsummarization.src.experiment_base import DBPedia, KnowledgeGraph
-from GLIMPSE_personalized_KGsummarization.src.glimpse import GLIMPSE, Summary
+from glimpse.src.algorithms import query_vector, random_walk_with_restart, query_vector_rdf
+from glimpse.src.experiment_base import DBPedia, KnowledgeGraph
+from glimpse.src.glimpse import GLIMPSE, Summary
 
 logging.basicConfig(format='[%(asctime)s] - %(message)s',
                     level=logging.DEBUG)

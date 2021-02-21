@@ -1,10 +1,10 @@
 import os
-from GLIMPSE_personalized_KGsummarization.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
-from GLIMPSE_personalized_KGsummarization.src.query import generate_query
+from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
+from glimpse.src.query import generate_query
 from experiments import calculateAccuracyAndTotals
-from GLIMPSE_personalized_KGsummarization.src.glimpse import GLIMPSE, Summary
-from GLIMPSE_personalized_KGsummarization.src.user import generate_synthetic_queries_by_topic
-from GLIMPSE_personalized_KGsummarization.src.query import answer_query
+from glimpse.src.glimpse import GLIMPSE, Summary
+from glimpse.src.user import generate_synthetic_queries_by_topic
+from glimpse.src.query import answer_query
 import json
 import math
 import sys

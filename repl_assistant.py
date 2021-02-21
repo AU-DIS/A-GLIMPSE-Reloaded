@@ -1,9 +1,9 @@
 import os
-from GLIMPSE_personalized_KGsummarization.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
-from GLIMPSE_personalized_KGsummarization.src.query import generate_query
+from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
+from glimpse.src.query import generate_query
 from experiments import calculateAccuracyAndTotals
-from GLIMPSE_personalized_KGsummarization.src.glimpse import GLIMPSE, Summary
-import GLIMPSE_personalized_KGsummarization.src.user as user
+from glimpse.src.glimpse import GLIMPSE, Summary
+import glimpse.src.user as user
 
 kg = ""
 
