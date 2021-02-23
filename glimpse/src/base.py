@@ -26,6 +26,7 @@ class KnowledgeGraph(object):
         self.relationships_ = set()
         self.triples_ = {}
         self.number_of_triples_ = 0
+        self.triple_index = {}
 
         # Map entities to numeric IDs
         self.eid_ = 0
@@ -54,6 +55,12 @@ class KnowledgeGraph(object):
         """
         return self.relationships_
 
+    def get_triples(self, triple_indices):
+        # //TODO: This is an ugly way of indexing triples
+        for i, triple in enumerate(self.triples()):
+            if i in triple_indices:
+                yield triple
+
     def triples(self):
         """
         :return triples: {(e1, r, e2) triples}
@@ -61,12 +68,10 @@ class KnowledgeGraph(object):
         Note that this method is linear in the number of triples
         in the KG because it has to create a flat set of triples.
         """
-        triples = set()
         for e1 in self.triples_:
             for r in self.triples_[e1]:
                 for e2 in self.triples_[e1][r]:
                     yield (e1, r, e2)
-
 
     def number_of_entities(self):
         """
@@ -150,7 +155,6 @@ class KnowledgeGraph(object):
                 self.triples_[e1][r] = set()
             self.triples_[e1][r].add(e2)
 
-
     def entity_id(self, entity):
         """
         :param entity: str label
@@ -179,8 +183,8 @@ class KnowledgeGraph(object):
 
         n = self.number_of_entities()
         return csr_matrix(
-                (np.array(data), (np.array(row), np.array(col))),
-                shape=(n,n))
+            (np.array(data), (np.array(row), np.array(col))),
+            shape=(n, n))
 
     def transition_matrix(self):
         """
@@ -197,8 +201,8 @@ class KnowledgeGraph(object):
 
         n = self.number_of_entities()
         D = csr_matrix(
-                (1 / np.array(data), (np.array(row), np.array(col))),
-                shape=(n,n))
+            (1 / np.array(data), (np.array(row), np.array(col))),
+            shape=(n, n))
         return self.csr_matrix().transpose() * D
 
     def reset(self):
@@ -229,12 +233,12 @@ class KnowledgeGraph(object):
 
         # Perform random walk on the KG
         if rdf_query_logs:
-            x,y = query_vector_rdf(self,query_log)
-            y = y if include_relationship_prob else np.ones(self.number_of_relationships())
+            x, y = query_vector_rdf(self, query_log)
+            y = y if include_relationship_prob else np.ones(
+                self.number_of_relationships())
         else:
-            x,y = query_vector(self, query_log), np.ones(self.number_of_relationships())
-
-
+            x, y = query_vector(self, query_log), np.ones(
+                self.number_of_relationships())
 
         M = self.transition_matrix()
         x = random_walk_with_restart(M, x, power=power)
@@ -250,8 +254,9 @@ class KnowledgeGraph(object):
                     triple = (e1, r, e2)
                     eid1, eid2 = self.entity_id(e1), self.entity_id(e2)
                     r_id = self.relationship_id_[r]
-                    self.triple_value_[triple] = np.log(x[eid1] * y[r_id] * x[eid2] + 1) #TODO not the same calculation as the paper (where is the relation)
-
+                    # TODO not the same calculation as the paper (where is the relation)
+                    self.triple_value_[triple] = np.log(
+                        x[eid1] * y[r_id] * x[eid2] + 1)
 
     def query_dir(self):
         raise NotImplementedError
@@ -270,6 +275,7 @@ class KnowledgeGraph(object):
 
     def entity_names(self):
         raise NotImplementedError
+
 
 class Freebase(KnowledgeGraph):
 
@@ -297,7 +303,7 @@ class Freebase(KnowledgeGraph):
 
     def is_entity(self, s):
         return s.startswith('m.') or s.startswith('g.') or \
-                s.startswith('<f_m.') or s.startswith('<f_g.')
+            s.startswith('<f_m.') or s.startswith('<f_g.')
 
     def strip_prefix(self, s):
         return s[3:-1]
@@ -334,8 +340,10 @@ class Freebase(KnowledgeGraph):
                 e2 = ' '.join(fact[2:])
 
                 if strip:
-                    e1 = self.strip_prefix(e1) if self.has_fb_prefix(e1) else e1
-                    e2 = self.strip_prefix(e2) if self.has_fb_prefix(e2) else e2
+                    e1 = self.strip_prefix(
+                        e1) if self.has_fb_prefix(e1) else e1
+                    e2 = self.strip_prefix(
+                        e2) if self.has_fb_prefix(e2) else e2
                     r = self.strip_prefix(r) if self.has_fb_prefix(r) else r
 
                 triple = (e1, r, e2)
@@ -377,7 +385,7 @@ class YAGO(KnowledgeGraph):
         return [fname[:-5] for fname in os.listdir(self.mid_dir_)]
 
     def entity_names(self):
-        return { entity : entity for entity in self.entities() }
+        return {entity: entity for entity in self.entities()}
 
     def load(self, head=None, strip=True):
         with gzip.open(self.rdf_gz_, 'rt') as f:
@@ -417,6 +425,12 @@ class DBPedia(KnowledgeGraph):
         self.query_dir_ = os.path.join(DBPEDIA_DATA_DIR, query_dir)
         self.mid_dir_ = os.path.join(DBPEDIA_DATA_DIR, mid_dir)
 
+    def get_triples(self, triple_indices):
+        # //TODO: This is an ugly way of indexing triples
+        for i, triple in enumerate(self.triples()):
+            if i in triple_indices:
+                yield triple
+
     def is_entity(self, s):
         return s in self.entity_id_
 
@@ -430,7 +444,7 @@ class DBPedia(KnowledgeGraph):
         return [fname[:-5] for fname in os.listdir(self.query_dir_)]
 
     def entity_names(self):
-        return { entity : entity for entity in self.entities() }
+        return {entity: entity for entity in self.entities()}
 
     def load(self, head=None, strip=True):
         files = [f for f in os.listdir(self.rdf_gz_)]
@@ -447,11 +461,10 @@ class DBPedia(KnowledgeGraph):
                     if not e1 or not e2:
                         continue
 
-
                     # remove property values
                     if not self.include_properties:
                         if not (e1.startswith("<") and e1.endswith(">") and e2.startswith("<") and e2.endswith(">")):
-                           continue
+                            continue
 
                     triple = (e1, r, e2)
                     self.add_triple(triple)
