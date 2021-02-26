@@ -6,7 +6,8 @@ import logging
 from glimpse.src.glimpse import GLIMPSE, Summary
 import time
 import pandas as pd
-from glimpseonline import Online_GLIMPSE
+import glimpseonline as g
+
 
 # Set to t.topics by default (The big motherfucker list of topics)
 # But this variable can be used to inject custom ones
@@ -26,9 +27,12 @@ n_topic_mids = int(number_of_queries/5)
 # The k and epsilon parameters
 k_pct = 0.01
 e = 0.01
+from importlib import reload
 
 
 def round_experiment(kg, real_k):
+    reload(g)
+
     print("Generating queries")
     queries = np.array_split(generate_queries(
         kg, topics, number_of_queries, n_topic_mids, algorithm=query_generation_algorithm), number_of_rounds)
@@ -57,7 +61,7 @@ def round_experiment(kg, real_k):
         queries[0], summary)
 
     print("Initting glimpse online")
-    glimpse_online = Online_GLIMPSE(kg, k)
+    glimpse_online = g.Online_GLIMPSE(kg, k)
 
     summary = glimpse_online.construct_summary()
     print("Constructed summary")
@@ -72,10 +76,12 @@ def round_experiment(kg, real_k):
     for i in range(1, number_of_rounds):
         # Add together all queries from 0 to round i
         # Compute accuracy
-        glimpse_online.update_queries(mean_accuracy)
+        glimpse_online.update_queries(summary, queries[i], mean_accuracy)
         summary = glimpse_online.construct_summary()
+    
         mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
             np.concatenate(queries[0:i], axis=None), summary)
+        
         print(f"Mean accuracy: {mean_accuracy} in round {i}")
 
         logging.info("      Summary  accuracy " + str(mean_accuracy))
