@@ -15,7 +15,7 @@ topics = t.topics
 # This experiment will use synthetic queries
 # Set the algorithm to be used by this experiment
 query_generation_algorithm = generate_synthetic_queries_by_topic
-number_of_rounds = 10
+number_of_rounds = 300
 # This variable determines if the GLIMPSE summary will be recomputed during the experiment
 # Set to 0 in order to let the summary be static throughout the experiment
 recompute_every_n = 0
@@ -30,7 +30,7 @@ e = 0.01
 from importlib import reload
 
 
-def round_experiment(kg, real_k):
+def round_experiment(kg):
     reload(g)
 
     print("Generating queries")
@@ -39,7 +39,6 @@ def round_experiment(kg, real_k):
     print("Finished with queries")
 
     k = k_pct*kg.number_of_triples()
-    k = real_k
 
     logging.info("KG entities: " + str(kg.number_of_entities()))
     logging.info("KG triples: " + str(kg.number_of_triples_))
@@ -76,11 +75,11 @@ def round_experiment(kg, real_k):
     for i in range(1, number_of_rounds):
         # Add together all queries from 0 to round i
         # Compute accuracy
-        glimpse_online.update_queries(summary, queries[i], mean_accuracy)
+        glimpse_online.update_queries(summary, queries[0], mean_accuracy)
         summary = glimpse_online.construct_summary()
     
         mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
-            np.concatenate(queries[0:i], axis=None), summary)
+            np.concatenate(queries[0], axis=None), summary)
         
         print(f"Mean accuracy: {mean_accuracy} in round {i}")
 

@@ -436,9 +436,11 @@ class DBPedia(KnowledgeGraph):
 
     def get_triples(self, triple_indices):
         # //TODO: This is an ugly way of indexing triples
+        t = []
         for i, triple in enumerate(self.triples()):
             if i in triple_indices:
-                yield triple
+                t.append(triple)
+        return t
 
     def load(self, head=None, strip=True):
         files = [f for f in os.listdir(self.rdf_gz_)]

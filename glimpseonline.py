@@ -1,14 +1,15 @@
 import logging
 from glimpse.src.glimpse import Summary, SummaryMethod
-import exp3 as e
 import numpy as np
 from importlib import reload
 import gc as garbage
+import bandits.efficient_bandits.exp3 as e
+
 
 class Online_GLIMPSE(object):
     def __init__(self, kg, K):
-        reload(e)
         garbage.collect()
+        reload(e)
         # //TODO: I hate having to store this reference for memory overhead reasons
         # But the triples function is not deterministic due to KGs use of set to
         # Return them
@@ -16,8 +17,8 @@ class Online_GLIMPSE(object):
         self.KG = kg
         self.K = K
         self.number_of_triples = kg.number_of_triples()
-        self.bandit = e.recursive_exp3(0, self.number_of_triples)
-        print("Finished making bandits")
+        self.bandit = e.exp3_efficient_bandit(self.number_of_triples, kg)
+        self.choices = set()
 
     def construct_summary(self):
         s = Summary(self.KG)
@@ -27,11 +28,14 @@ class Online_GLIMPSE(object):
             s.fill(self.KG.triples(), self.K)
 
         else:
-            s.fill(self.KG.get_triples(self.bandit.make_choices(self.K)), self.K)
+            self.choices = self.bandit.choose_triples(self.K)
+            s.fill(np.array([x[1] for x in self.choices]), self.K)
+        print(f"Filled {self.K} triples")
 
         return s
 
-    def update_queries(self, summary, queries, acc):        
-        self.bandit.bandit.give_reward(acc)
-        for bandit in self.bandit.recursive_bandits:
-            bandit.give_reward(acc)
+    def update_queries(self, summary, queries, acc):
+        rewards, choice_indices = self.bandit.create_rewards(
+            queries, self.choices)
+        self.bandit.give_reward(rewards, choice_indices)
+        self.choices = set()
