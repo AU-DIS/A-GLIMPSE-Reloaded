@@ -30,7 +30,6 @@ class Online_GLIMPSE(object):
         else:
             self.choices = self.bandit.choose_triples(self.K)
             s.fill(np.array([x[1] for x in self.choices]), self.K)
-        print(f"Filled {self.K} triples")
 
         return s
 
@@ -39,3 +38,6 @@ class Online_GLIMPSE(object):
             queries, self.choices)
         self.bandit.give_reward(rewards, choice_indices)
         self.choices = set()
+
+    def init_bandit_weights(self, queries):
+        self.bandit.create_initialisation_rewards(queries, self.KG)

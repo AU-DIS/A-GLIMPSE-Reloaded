@@ -75,6 +75,7 @@ def round_experiment(kg):
     for i in range(1, number_of_rounds):
         # Add together all queries from 0 to round i
         # Compute accuracy
+        kg.reset()
         glimpse_online.update_queries(summary, queries[0], mean_accuracy)
         summary = glimpse_online.construct_summary()
     

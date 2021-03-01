@@ -11,6 +11,7 @@ from .efficient_heap import hsample, sumheap, update
 class exp3_efficient_bandit(object):
     def __init__(self, number_of_triples, kg):
         self.weights = [1.0] * number_of_triples
+        #self.weights = np.random.uniform(0, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 100
         self.round = 0
@@ -57,10 +58,23 @@ class exp3_efficient_bandit(object):
             if e1 in queries:
                 acc_reward += 50
             if e2 in queries:
-                acc_reward += 500
+                acc_reward += 50
             rewards.append(acc_reward)
             choice_indices.append(index)
         return rewards, choice_indices
+
+    def create_initialisation_rewards(self, queries, kg, k):
+        queries = random.sample(queries, k)
+        index_triple_set = set()
+        for i, triple in enumerate(kg.triples()):
+            (e1, _, e2) = triple
+            if e1 or e2 in queries:
+                index_triple_set.add((i, triple))
+
+        print("Finished looping")
+        rewards, choice_indices = self.create_rewards(
+            queries, index_triple_set)
+        self.give_reward(rewards, choice_indices)
 
 
 # draw: [float] -> int
