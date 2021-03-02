@@ -25,7 +25,6 @@ class bcolors:
 no_unique_entities = 0
 topics = t.topics
 
-
 def trainer(kg, queries, k, rounds):
     global no_unique_entities
     reload(t)

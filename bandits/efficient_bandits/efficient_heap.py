@@ -4,6 +4,7 @@
 
 import numpy as np
 from numpy.random import uniform
+import math
 
 
 def update(S, k, v):
@@ -17,23 +18,13 @@ def update(S, k, v):
 
 
 def sumheap(w):
-    "Create sumheap from weights `w`."
+    "Create sumheap from weights `w` in O(n) time."
     n = len(w)
-
-    # About the datastructure: Bottom-most level of the heap has size n' =
-    # next-power-of-two(n). The number of internal nodes in the tree is n'-1. We
-    # have a dummy node at position zero to make indexing math simpler. So, we
-    # allocate twice the size of the bottom level to fit internal nodes. Thus,
-    # the overal data structure is <4*n in the worst case because the next power
-    # of two <2n and then we have another factor of two for internal nodes.
-    d = int(2**np.ceil(np.log2(n)))
-    S = np.zeros(2*d)
-
-    # O(n) version (faster than calling update n times => O(n log n))
-    S[d:d+n] = w
+    d = int(2**np.ceil(np.log2(n)))  # number of intermediates
+    S = np.zeros(2*d)                # intermediates + leaves
+    S[d:d+n] = w                     # store `w` at leaves.
     for i in reversed(range(1, d)):
         S[i] = S[2*i] + S[2*i + 1]
-
     return S
 
 
@@ -42,7 +33,8 @@ def check(S, i):
     d = len(S)
     if i >= d//2:   # only checks internal nodes.
         return
-    assert S[i] == S[2*i] + S[2*i + 1]
+    if S[i] != S[2*i] + S[2*i + 1]:
+        S[i] = S[2*i] + S[2*i + 1]
     check(S, 2*i)
     check(S, 2*i + 1)
 

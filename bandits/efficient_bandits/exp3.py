@@ -2,7 +2,9 @@ import math
 import random
 import numpy as np
 import random
-from .efficient_heap import hsample, sumheap, update
+from importlib import reload
+import bandits.efficient_bandits.efficient_heap as heap
+import logging
 
 # Adapted from Jeremy Kuns implementation
 # https://github.com/j2kun/exp3/blob/main/exp3.py
@@ -10,22 +12,24 @@ from .efficient_heap import hsample, sumheap, update
 
 class exp3_efficient_bandit(object):
     def __init__(self, number_of_triples, kg):
-        self.weights = [1.0] * number_of_triples
-        #self.weights = np.random.uniform(0, 1, size=number_of_triples)
+        reload(heap)
+        self.weights = np.random.uniform(1, 100, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 100
         self.round = 0
-        self.distribution = sumheap(self.weights)
+        self.distribution = heap.sumheap(self.weights)
         self.gamma = 0.07
         self.kg = kg
+        #heap.check(self.distribution, 1)
 
     def choose_triple(self):
-        self.choice = hsample(self.distribution)
+        self.choice = heap.hsample(self.distribution)
         # We return index of choice, the choice and the round
         return self.choice
 
     def choose_triples(self, k):
         triples = set()
+        print("Chpoosing triples")
         while len(triples) <= k:
             c = self.choose_triple()
             if c not in triples:
@@ -39,14 +43,20 @@ class exp3_efficient_bandit(object):
     def give_reward(self, rewards, choice_indices):
         global reward_max, reward_min
         for i in range(0, len(rewards)):
+
             scaled_reward = (rewards[i] - self.reward_min) / \
                 (self.reward_max - self.reward_min)
             c = choice_indices[i]
+
             estimated_reward = 1.0 * scaled_reward / \
-                (self.distribution[c]+0.0001)
+                (self.distribution[c])
+
+            # If using negative, extract original value for proability updates
             self.weights[c] *= math.exp(estimated_reward *
                                         self.gamma / len(self.weights))
-            update(self.distribution, c, self.weights[c])
+
+            heap.update(self.distribution, c, self.weights[c])
+        heap.check(self.distribution, 1)
 
     def create_rewards(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)

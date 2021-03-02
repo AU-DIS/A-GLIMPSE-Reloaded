@@ -13,7 +13,6 @@ class Online_GLIMPSE(object):
         # //TODO: I hate having to store this reference for memory overhead reasons
         # But the triples function is not deterministic due to KGs use of set to
         # Return them
-        print("Initting")
         self.KG = kg
         self.K = K
         self.number_of_triples = kg.number_of_triples()
