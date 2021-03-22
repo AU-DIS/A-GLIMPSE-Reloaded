@@ -29,7 +29,7 @@ class exp3_efficient_bandit(object):
 
     def choose_triples(self, k):
         triples = set()
-        print("Chpoosing triples")
+        print("Choosing triples")
         while len(triples) <= k:
             c = self.choose_triple()
             if c not in triples:

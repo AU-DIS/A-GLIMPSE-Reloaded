@@ -9,7 +9,7 @@ kg = ""
 
 def load_kg():
     global kg
-    kg = DBPedia('DBPedia3.9/')
+    kg = DBPedia('dbpedia39')
     kg.load()
 
 

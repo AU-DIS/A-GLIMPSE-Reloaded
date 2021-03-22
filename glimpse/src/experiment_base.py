@@ -14,7 +14,7 @@ from .algorithms import query_vector, random_walk_with_restart, query_vector_rdf
 # TODO: Replace these data directories with your own paths
 FREEBASE_DATA_DIR = '/x/tsafavi/data/WebQSDP/data/'
 YAGO_DATA_DIR = '/x/tsafavi/data/yago3/'
-DBPEDIA_DATA_DIR = '/mnt/d/A-GLIMPSE/DBPedia3.9/'
+DBPEDIA_DATA_DIR = 'dbpedia39'
 
 
 class KnowledgeGraph(object):
