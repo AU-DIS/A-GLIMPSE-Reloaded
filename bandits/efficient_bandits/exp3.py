@@ -13,7 +13,8 @@ import logging
 class exp3_efficient_bandit(object):
     def __init__(self, number_of_triples, kg):
         reload(heap)
-        self.weights = np.random.uniform(0.01, 1, size=number_of_triples)
+        self.weights = np.full(number_of_triples, 1/number_of_triples)
+        #np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 100
         self.round = 0
@@ -30,8 +31,9 @@ class exp3_efficient_bandit(object):
     def choose_triples(self, k):
         triples = set()
         print("Choosing triples")
-        while len(triples) <= k:
+        while len(triples) < k:
             c = heap.hsample(self.distribution)
+            # c = random.sample(range(len(self.weights)), 1)[0]
             if c not in triples:
                 triples.add(c)
         triples = set([(index, triple) for (index, triple)

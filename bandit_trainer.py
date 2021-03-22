@@ -25,10 +25,11 @@ class bcolors:
 no_unique_entities = 0
 topics = t.topics
 
+
 def trainer(kg, queries, k, rounds):
     global no_unique_entities
     reload(t)
-    reload(g) 
+    reload(g)
     nt = randint(int(queries/1000), int(queries/5))
 
     queries = generate_queries(kg, topics, queries, nt)
@@ -57,7 +58,7 @@ def trainer(kg, queries, k, rounds):
         mean_accuracy = compute_accuracy(round_queries, summary)
 
         logging.info("Giving feedback")
-        glimpse_online.update_queries(round_queries, queries, 0)
+        glimpse_online.update_queries(queries)
         t3 = time.time()
         logging.info(f"Speed: Summary: {t2 - t1} Feedback: {t3 - t2}")
 

@@ -32,7 +32,7 @@ class Online_GLIMPSE(object):
 
         return s
 
-    def update_queries(self, summary, queries, acc):
+    def update_queries(self, queries):
         rewards, choice_indices = self.bandit.create_rewards(
             queries, self.choices)
         self.bandit.give_reward(rewards, choice_indices)

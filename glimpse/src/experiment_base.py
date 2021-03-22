@@ -61,7 +61,6 @@ class KnowledgeGraph(object):
         Note that this method is linear in the number of triples
         in the KG because it has to create a flat set of triples.
         """
-        triples = set()
         for e1 in self.triples_:
             for r in self.triples_[e1]:
                 for e2 in self.triples_[e1][r]:
