@@ -28,7 +28,7 @@ topics = t.topics
 def trainer(kg, queries, k, rounds):
     global no_unique_entities
     reload(t)
-    reload(g)
+    reload(g) 
     nt = randint(int(queries/1000), int(queries/5))
 
     queries = generate_queries(kg, topics, queries, nt)

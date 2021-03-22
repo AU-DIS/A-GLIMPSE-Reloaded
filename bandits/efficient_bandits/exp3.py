@@ -13,7 +13,7 @@ import logging
 class exp3_efficient_bandit(object):
     def __init__(self, number_of_triples, kg):
         reload(heap)
-        self.weights = np.random.uniform(1, 100, size=number_of_triples)
+        self.weights = np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 100
         self.round = 0
@@ -31,7 +31,7 @@ class exp3_efficient_bandit(object):
         triples = set()
         print("Choosing triples")
         while len(triples) <= k:
-            c = self.choose_triple()
+            c = heap.hsample(self.distribution)
             if c not in triples:
                 triples.add(c)
         triples = set([(index, triple) for (index, triple)
@@ -47,13 +47,18 @@ class exp3_efficient_bandit(object):
             scaled_reward = (rewards[i] - self.reward_min) / \
                 (self.reward_max - self.reward_min)
             c = choice_indices[i]
+            offset = len(self.distribution)//2
+
+
+            if self.distribution[offset + c] == 0:
+                print(f"{c} is 0, helikoptere")
 
             estimated_reward = 1.0 * scaled_reward / \
-                (self.distribution[c])
+                (self.distribution[offset + c])
 
             # If using negative, extract original value for proability updates
-            self.weights[c] *= math.exp(estimated_reward *
-                                        self.gamma / len(self.weights))
+            self.weights[c] = self.weights[c] * math.exp(estimated_reward *
+                                                         self.gamma / len(self.weights))
 
             heap.update(self.distribution, c, self.weights[c])
         heap.check(self.distribution, 1)

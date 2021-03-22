@@ -7,6 +7,7 @@ from numpy.random import uniform
 import math
 
 
+
 def update(S, k, v):
     "Update value position `k` in time O(log n)."
     d = len(S)
@@ -19,12 +20,19 @@ def update(S, k, v):
 
 def sumheap(w):
     "Create sumheap from weights `w` in O(n) time."
+
+    for i, v in enumerate(w):
+        if v <= 0:
+            print(i, v)
+
     n = len(w)
     d = int(2**np.ceil(np.log2(n)))  # number of intermediates
     S = np.zeros(2*d)                # intermediates + leaves
-    S[d:d+n] = w                     # store `w` at leaves.
+    print(n, d)
+    S[d:d+n] = w                   # store `w` at leaves.
     for i in reversed(range(1, d)):
         S[i] = S[2*i] + S[2*i + 1]
+
     return S
 
 
@@ -74,7 +82,7 @@ def hsample(S):
 def main():
     for n in np.random.choice(range(1, 100), size=10):
         print(n)
-        w = np.round(uniform(0, 10, size=n), 1)
+        w = np.round(uniform(0, 1, size=n), 1)
         S = sumheap(w)
         check(S, 1)
         for _ in range(100):
