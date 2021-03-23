@@ -32,7 +32,7 @@ class exp3_efficient_bandit(object):
 
     def choose_triples(self, k):
         triples = set()
-        print("Choosing triples")
+        #print("Choosing triples")
         while len(triples) < k:
             c = heap.hsample(self.distribution)
             # c = random.sample(range(len(self.weights)), 1)[0]
@@ -44,7 +44,7 @@ class exp3_efficient_bandit(object):
 
     def choose_k(self, k):
         entities = set()
-        logging.debug("Choosing triples")
+        #logging.debug("Choosing triples")
         while len(entities) < k:
             c = heap.hsample(self.distribution)
             entities.add(c)

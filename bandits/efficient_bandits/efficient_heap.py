@@ -21,14 +21,12 @@ def update(S, k, v):
 def sumheap(w):
     "Create sumheap from weights `w` in O(n) time."
 
-    for i, v in enumerate(w):
-        if v <= 0:
-            print(i, v)
+
 
     n = len(w)
     d = int(2**np.ceil(np.log2(n)))  # number of intermediates
     S = np.zeros(2*d)                # intermediates + leaves
-    print(n, d)
+   #print(n, d)
     S[d:d+n] = w                   # store `w` at leaves.
     for i in reversed(range(1, d)):
         S[i] = S[2*i] + S[2*i + 1]
