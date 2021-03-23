@@ -16,7 +16,7 @@ class Online_GLIMPSE(object):
         self.KG = kg
         self.K = K
         self.number_of_triples = kg.number_of_triples()
-        self.bandit = e.exp3_efficient_bandit(self.number_of_triples, kg)
+        self.bandit = e.exp3_efficient_bandit(kg)
         self.choices = set()
 
     def construct_summary(self):
@@ -27,16 +27,30 @@ class Online_GLIMPSE(object):
             s.fill(self.KG.triples(), self.K)
 
         else:
-            self.choices = self.bandit.choose_triples(self.K)
-            s.fill(np.array([x[1] for x in self.choices]), self.K)
+            self.choices = self.bandit.choose_k(self.K)
+            s.fill((self.choose_entity_triples(self.choices)), self.K)
 
         return s
 
+    def choose_entity_triples(self, entity_indices):
+        triples = []
+        for i in entity_indices:
+            e1 = self.KG.entities_list_[i]
+            for r in self.KG[e1]:
+                for e2 in self.KG[e1][r]:
+                    if len(triples) < self.K:
+                        triples.append((e1, r, e2))
+                    else:
+                        return triples
+        return triples
+
     def update_queries(self, queries):
-        rewards, choice_indices = self.bandit.create_rewards(
-            queries, self.choices)
-        self.bandit.give_reward(rewards, choice_indices)
-        self.choices = set()
+        self.bandit.create_rewards(queries, self.choices)
+
+        # rewards, choice_indices = self.bandit.create_rewards(
+        # queries, self.choices)
+        #self.bandit.give_reward(rewards, choice_indices)
+        #self.choices = set()
 
     def init_bandit_weights(self, queries):
         self.bandit.create_initialisation_rewards(queries, self.KG)

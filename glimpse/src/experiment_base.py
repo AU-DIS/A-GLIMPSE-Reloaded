@@ -26,6 +26,7 @@ class KnowledgeGraph(object):
         self.relationships_ = set()
         self.triples_ = {}
         self.number_of_triples_ = 0
+        self.entities_list_ = []
 
         # Map entities to numeric IDs
         self.eid_ = 0
@@ -36,6 +37,8 @@ class KnowledgeGraph(object):
         self.rid_ = 0
         self.relationship_id_ = {}
         self.id_relationship_ = {}
+
+        self.id_to_entities = []
 
         self.name_ = None
 
@@ -144,6 +147,7 @@ class KnowledgeGraph(object):
 
             if e1 not in self.triples_:
                 self.triples_[e1] = {}
+                self.entities_list_.append(e1)
             if r not in self.triples_[e1]:
                 self.triples_[e1][r] = set()
             self.triples_[e1][r].add(e2)
@@ -466,4 +470,6 @@ class DBPedia(KnowledgeGraph):
 
                     if self.number_of_triples() == head:
                         return
+
                 print("Loaded: " + str(f))
+        

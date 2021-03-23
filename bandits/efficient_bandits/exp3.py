@@ -11,17 +11,19 @@ import logging
 
 
 class exp3_efficient_bandit(object):
-    def __init__(self, number_of_triples, kg):
+    def __init__(self, kg):
         reload(heap)
-        self.weights = np.full(number_of_triples, 1/number_of_triples)
-        #np.random.uniform(0.01, 1, size=number_of_triples)
+        self.number_of_entities = len(kg.entities_list_)
+        self.weights = np.full(self.number_of_entities,
+                               1/self.number_of_entities)
+        # np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
-        self.reward_max = 100
+        self.reward_max = 1
         self.round = 0
         self.distribution = heap.sumheap(self.weights)
         self.gamma = 0.07
         self.kg = kg
-        #heap.check(self.distribution, 1)
+        # heap.check(self.distribution, 1)
 
     def choose_triple(self):
         self.choice = heap.hsample(self.distribution)
@@ -40,31 +42,51 @@ class exp3_efficient_bandit(object):
                        in zip(triples, self.kg.get_triples(triples))])
         return triples
 
+    def choose_k(self, k):
+        entities = set()
+        logging.debug("Choosing triples")
+        while len(entities) < k:
+            c = heap.hsample(self.distribution)
+            entities.add(c)
+
+        return entities
+
     # IMPORTANT, WE GIVE A VECTOR OF REWARDS, WHERE EACH ENTRY EQUALS A REWARD FOR A CHOICE
     # WE CHOOSE K CHOICES IN A DIFFERENT FUNCTION, SO WE MUST GIVE K REWARDS
-    def give_reward(self, rewards, choice_indices):
+
+    def give_reward(self, reward, i):
         global reward_max, reward_min
-        for i in range(0, len(rewards)):
 
-            scaled_reward = (rewards[i] - self.reward_min) / \
-                (self.reward_max - self.reward_min)
-            c = choice_indices[i]
-            offset = len(self.distribution)//2
+        scaled_reward = (reward - self.reward_min) / \
+            (self.reward_max - self.reward_min)
 
-            if self.distribution[offset + c] == 0:
-                print(f"{c} is 0, helikoptere")
+        offset = len(self.distribution)//2
 
-            estimated_reward = 1.0 * scaled_reward / \
-                (self.distribution[offset + c])
+        estimated_reward = 1.0 * scaled_reward / \
+            (self.distribution[offset + i])
 
-            # If using negative, extract original value for proability updates
-            self.weights[c] = self.weights[c] * math.exp(estimated_reward *
-                                                         self.gamma / len(self.weights))
+        # If using negative, extract original value for proability updates
+        self.weights[i] = self.weights[i] * math.exp(estimated_reward *
+                                                     self.gamma / len(self.weights))
 
-            heap.update(self.distribution, c, self.weights[c])
-        heap.check(self.distribution, 1)
+        heap.update(self.distribution, i, self.weights[i])
+        #heap.check(self.distribution, 1)
 
-    def create_rewards(self, queries, index_triple_set):
+    def create_rewards(self, queries, chosen_entities):
+        queries_set = set()
+        for qs in queries:
+            for q in qs:
+                queries_set.add(q)
+        queries = queries_set
+
+        for i in chosen_entities:
+            name = self.kg.entities_list_[i]
+            if name in queries:
+                self.give_reward(1, i)
+            else:
+                self.give_reward(0, i)
+
+    def create_rewards_triples(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)
         rewards = []
         choice_indices = []
