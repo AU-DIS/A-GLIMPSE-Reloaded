@@ -51,7 +51,6 @@ class exp3_efficient_bandit(object):
             c = choice_indices[i]
             offset = len(self.distribution)//2
 
-
             if self.distribution[offset + c] == 0:
                 print(f"{c} is 0, helikoptere")
 
@@ -69,6 +68,13 @@ class exp3_efficient_bandit(object):
         # Substitute efficient lookup data structure here (For strings)
         rewards = []
         choice_indices = []
+        # print(type(queries[0]))
+        queries_set = set()
+        for qs in queries:
+            for q in qs:
+                queries_set.add(q)
+        queries = queries_set
+
         for (index, triple) in index_triple_set:
             acc_reward = 0
             (e1, _, e2) = triple
