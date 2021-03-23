@@ -13,9 +13,9 @@ import logging
 class exp3_efficient_bandit(object):
     def __init__(self, kg):
         reload(heap)
-        self.number_of_entities = len(kg.entities_list_)
-        self.weights = np.full(self.number_of_entities,
-                               1/self.number_of_entities)
+        self.number_of_triples = kg.number_of_triples_
+        self.weights = np.full(self.number_of_triples,
+                               1/self.number_of_triples)
         # np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 1
@@ -32,7 +32,7 @@ class exp3_efficient_bandit(object):
 
     def choose_triples(self, k):
         triples = set()
-        #print("Choosing triples")
+        # print("Choosing triples")
         while len(triples) < k:
             c = heap.hsample(self.distribution)
             # c = random.sample(range(len(self.weights)), 1)[0]
@@ -44,7 +44,7 @@ class exp3_efficient_bandit(object):
 
     def choose_k(self, k):
         entities = set()
-        #logging.debug("Choosing triples")
+        # logging.debug("Choosing triples")
         while len(entities) < k:
             c = heap.hsample(self.distribution)
             entities.add(c)
@@ -70,21 +70,37 @@ class exp3_efficient_bandit(object):
                                                      self.gamma / len(self.weights))
 
         heap.update(self.distribution, i, self.weights[i])
-        #heap.check(self.distribution, 1)
+        # heap.check(self.distribution, 1)
 
-    def create_rewards(self, queries, chosen_entities):
+    def create_rewards(self, queries, summary):
         queries_set = set()
         for qs in queries:
             for q in qs:
                 queries_set.add(q)
         queries = queries_set
 
-        for i in chosen_entities:
-            name = self.kg.entities_list_[i]
-            if name in queries:
-                self.give_reward(1, i)
-            else:
-                self.give_reward(0, i)
+        for (e1, r, e2) in summary:
+            choice_index = self.kg.triple_ids[e1][r][e2]
+            reward = 0
+            if e1 in queries:
+                reward = 0.5
+            if e2 in queries:
+                reward = 0.5
+            self.give_reward(reward, choice_index)
+
+    # def create_rewards(self, queries, chosen_entities):
+    #    queries_set = set()
+     #   for qs in queries:
+     #       for q in qs:
+     #           queries_set.add(q)
+     #   queries = queries_set
+
+        # for i in chosen_entities:
+         #   name = self.kg.entities_list_[i]
+          #  if name in queries:
+           #     self.give_reward(1, i)
+            # else:
+            #   self.give_reward(0, i)
 
     def create_rewards_triples(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)

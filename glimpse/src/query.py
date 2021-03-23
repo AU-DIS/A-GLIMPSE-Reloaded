@@ -35,6 +35,7 @@ Yih et al. ACL 2016.
 }
 """
 
+
 def check_question(question):
     """
     :param question: dict question in WebQSP format
@@ -44,6 +45,7 @@ def check_question(question):
            'TopicEntityMid' in question['Parse'] and \
            'InferentialChain' in question['Parse'] and \
            'Answers' in question['Parse']
+
 
 def load_question(query_fname):
     """
@@ -59,6 +61,7 @@ def load_question(query_fname):
 
     return question
 
+
 def save_question(question, query_fname):
     """
     :param question: dict question in WebQSDP format
@@ -69,6 +72,7 @@ def save_question(question, query_fname):
 
     with open(query_fname, 'w') as f:
         json.dump(question, f)
+
 
 def save_questions_by_mid(query_dir, questions):
     """
@@ -90,6 +94,7 @@ def save_questions_by_mid(query_dir, questions):
         with open(mid_file, 'a') as f:
             f.write('{}\n'.format(qid))
 
+
 def load_questions_from_dir(query_dir):
     """
     :param query_dir: directory where queries are stored
@@ -106,6 +111,7 @@ def load_questions_from_dir(query_dir):
         questions[qid] = question
     return questions
 
+
 def load_questions_from_file(query_dir, fname):
     """
     :param query_dir: directory where queries to load are stored
@@ -121,6 +127,7 @@ def load_questions_from_file(query_dir, fname):
     return {qid: load_question(
         os.path.join(query_dir, '{}.json'.format(qid))) for qid in qids}
 
+
 def load_qids(fname):
     """
     :param fname: file listing query IDs
@@ -132,12 +139,14 @@ def load_qids(fname):
             qids.append(line.rstrip())
     return qids
 
+
 def is_synthetic_query(query):
     """
     :param query: query in WebQSP dict format
     :return: whether query is synthetic
     """
     return query['QuestionId'].startswith('Synth')
+
 
 def is_webqsp_query(query):
     """
@@ -146,6 +155,7 @@ def is_webqsp_query(query):
     """
     return query['QuestionId'].startswith('WebQ')
 
+
 def get_name(mid, entity_names):
     """
     :param mid: entity MID (str)
@@ -153,6 +163,7 @@ def get_name(mid, entity_names):
     :return name: str or None
     """
     return entity_names[mid] if mid in entity_names else mid
+
 
 def answer_query(KG, query):
     """
@@ -175,26 +186,28 @@ def answer_query(KG, query):
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG and predicate in KG[entity]:
-                candidates.update(KG[entity][predicate])
+            if entity in KG.entities_.keys() and predicate in KG.triples_[KG.entities_[entity]]:
+                candidates.update(KG.triples_[KG.entities_[entity]][predicate])
 
         # Remove candidates that don't fit the constraints
         remove = set()
         for constraint in constraints[index]:
             argument, predicate = constraint['Argument'], constraint['NodePredicate']
             for entity in candidates:
-                if entity not in KG or \
-                    predicate not in KG[entity] or \
-                    argument not in KG[entity][predicate]:
+                if entity not in KG.entitity_to_id.keys() or \
+                        predicate not in KG[entity] or \
+                        argument not in KG.triples_[entity][predicate]:
                     remove.add(entity)
 
         candidates = candidates.difference(remove)
         result = candidates
 
-    return result.difference({topic_mid}) # topic entity cannot be part of answer
+    # topic entity cannot be part of answer
+    return result.difference({topic_mid})
+
 
 def generate_query(KG, topic_mid, chain_len=2, qid=0,
-        entity_names={}, constraint_index=None, exclude_preds=[]):
+                   entity_names={}, constraint_index=None, exclude_preds=[]):
     """
     :param KG: object that can be accessed by {subject: {predicate: {object}}}
     :param topic_mid: str ID of the query's topic entity
@@ -210,39 +223,43 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
 
     # Create the core inferential chain (directed path) first
     entity = topic_mid
+    entity_index = KG.entities_[entity]
+
     for _ in range(chain_len):
         predicates = [
-                pred for pred in KG[entity] if pred not in exclude_preds
-        ] if entity in KG else []
+            pred for pred in KG.triples_[entity_index] if pred not in exclude_preds
+        ] if entity_index in KG.triples_.keys() else []
+
         if not predicates:
             break
 
         predicate = random.choice(predicates)
         inferential_chain.append(predicate)
+        entities = KG.triples_[entity_index][predicate]
 
-        entities = KG[entity][predicate]
         entity = random.choice(list(entities))
 
     # Add constraints and get the answers
-    result = {topic_mid}
+    result = {entity_index}
     for index, predicate in enumerate(inferential_chain):
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG and predicate in KG[entity]:
-                candidates.update(KG[entity][predicate])
+            if entity in KG.triples_.keys() and predicate in KG.triples_[entity]:
+                candidates.update(KG.triples_[entity][predicate])
 
         if candidates and constraint_index == index:
             entity = random.choice(list(candidates))
             predicates = [
-                pred for pred in KG[entity] if pred not in inferential_chain \
-                    and pred not in exclude_preds
-            ] if entity in KG else []
+                pred for pred in KG.triples_[entity_index] if pred not in inferential_chain
+                and pred not in exclude_preds
+            ] if entity_index in KG.triples_.keys() else []
 
             if predicates:
                 predicate = random.choice(predicates)
-                if KG[entity][predicate]:
-                    argument = random.choice(list(KG[entity][predicate]))
+                if KG.triples_[entity_index][predicate]:
+                    argument = random.choice(
+                        list(KG.triples_[entity_index][predicate]))
                     constraints.append({
                         'SourceNodeIndex': index,
                         'NodePredicate': predicate,
@@ -252,13 +269,14 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
 
                     remove = set()
                     for entity in candidates:
-                        if entity not in KG or \
-                            predicate not in KG[entity] or \
-                            argument not in KG[entity][predicate]:
+                        entity_index = KG.entities_[entity]
+                        if entity not in KG.entities_.keys() or \
+                                predicate not in KG.triples_[entity_index] or \
+                                argument not in KG.triples_[entity_index][predicate]:
                             remove.add(entity)
                     candidates = candidates.difference(remove)
 
-        result = candidates
+        result = {KG.entity_to_id[x] for x in candidates}
 
     return {
         'QuestionId': str(qid),
@@ -267,11 +285,11 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
             'TopicEntityName': get_name(topic_mid, entity_names),
             'InferentialChain': inferential_chain,
             'Constraints': constraints,
-            'Answers': [ {
-                    'AnswerType': 'Entity' if KG.is_entity(answer) else 'Value',
-                    'AnswerArgument': answer,
-                    'EntityName': get_name(answer, entity_names)
-                } for answer in result.difference({topic_mid})
+            'Answers': [{
+                'AnswerType': 'Entity' if answer in KG.entities_.keys() else 'Value',
+                'AnswerArgument': KG.entity_to_id[answer] if answer in KG.entity_to_id.keys() else answer,
+                'EntityName': KG.entity_to_id[answer] if answer in KG.entity_to_id.keys() else answer
+            } for answer in result.difference({topic_mid})
             ]
         }
     }

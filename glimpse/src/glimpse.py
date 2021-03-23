@@ -84,7 +84,8 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
     :return S: Summary
     """
     # Estimate user preferences over KG
-    KG.model_user_pref(query_log, power=power,rdf_query_logs=rdf_query_logs,include_relationship_prob=include_relation_prob)
+    KG.model_user_pref(query_log, power=power, rdf_query_logs=rdf_query_logs,
+                       include_relationship_prob=include_relation_prob)
 
     # Greedily select top-k triples for summary S
     heap = Heap(KG)
@@ -94,9 +95,9 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
     if len(heap) <= K:
         S.fill(heap.triples(), K)
     else:
-        heap.update(S, len(heap)) # update all marginals
+        heap.update(S, len(heap))  # update all marginals
         sample_size = len(heap) if epsilon is None else \
-                int(len(heap) / K * np.log(1 / epsilon))
+            int(len(heap) / K * np.log(1 / epsilon))
 
         while len(heap) and S.number_of_triples() < K:
 
@@ -105,6 +106,7 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
             heap.update(S, sample_size)
     logging.info("lazy " + str(heap.i))
     logging.info("updates " + str(heap.u))
-    logging.info("Size of summary before random fill: " + str(S.number_of_triples()))
+    logging.info("Size of summary before random fill: " +
+                 str(S.number_of_triples()))
     S.fill(KG.triples(), K)
     return S

@@ -1,4 +1,6 @@
 import logging
+
+from numpy.core.numeric import indices
 from glimpse.src.glimpse import Summary, SummaryMethod
 import numpy as np
 from importlib import reload
@@ -28,9 +30,21 @@ class Online_GLIMPSE(object):
 
         else:
             self.choices = self.bandit.choose_k(self.K)
-            s.fill((self.choose_entity_triples(self.choices)), self.K)
+            self.choices = self.indices_to_triples()
+            s.fill(self.choices, self.K)
 
         return s
+
+    def indices_to_triples(self):
+        triple_choices = []
+        for triple_index in self.choices:
+            (e1_index, r_index,
+             e2_index) = self.KG.index_to_triple[triple_index]
+            triple_choices.append(
+                (self.KG.entity_to_id[e1_index], self.KG.id_to_relationship[
+                    r_index], self.KG.entity_to_id[e2_index]
+            ))
+        return triple_choices
 
     def choose_entity_triples(self, entity_indices):
         triples = []
@@ -46,7 +60,6 @@ class Online_GLIMPSE(object):
 
     def update_queries(self, queries):
         self.bandit.create_rewards(queries, self.choices)
-
         # rewards, choice_indices = self.bandit.create_rewards(
         # queries, self.choices)
         #self.bandit.give_reward(rewards, choice_indices)

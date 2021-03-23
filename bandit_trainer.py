@@ -1,5 +1,5 @@
-from util import generate_queries, makeTrainingTestSplit, calculateAccuracyAndTotals
-from glimpse.src.user import generate_queries_by_topic
+import util as util
+from glimpse.src import user
 import topics as t
 import numpy as np
 import logging
@@ -30,11 +30,12 @@ def trainer(kg, queries, k, rounds):
     global no_unique_entities
     reload(t)
     reload(g)
+    reload(util)
     nt = randint(int(queries/1000), int(queries/5))
 
-    queries = generate_queries(kg, topics, queries, nt)
+    queries = util.generate_queries(kg, topics, queries, nt)
 
-    logging.info("KG entities: " + str(kg.number_of_entities()))
+    logging.info("KG entities: " + str(kg.number_of_entities))
     logging.info("KG triples: " + str(kg.number_of_triples_))
     logging.info(f"k, nt = {k} {nt}")
 
@@ -55,7 +56,7 @@ def trainer(kg, queries, k, rounds):
         t2 = time.time()
         round_queries = queries
 
-        mean_accuracy = compute_accuracy(round_queries, summary)
+        mean_accuracy = compute_accuracy(kg, round_queries, summary)
 
         logging.info("Giving feedback")
         glimpse_online.update_queries(queries)
@@ -63,14 +64,15 @@ def trainer(kg, queries, k, rounds):
         logging.info(f"Speed: Summary: {t2 - t1} Feedback: {t3 - t2}")
 
 
-def compute_accuracy(queries, summary):
+def compute_accuracy(kg, queries, summary):
     global no_unique_entities
     total_hits = 0
     total = 0
     unique_hits = set()
     for q in queries:
         for answer in q:
-            total = total + 1
+            total += 1
+            answer = kg.entity_to_id[answer]
             if summary.has_entity(answer):
                 unique_hits.add(answer)
                 total_hits = total_hits + 1

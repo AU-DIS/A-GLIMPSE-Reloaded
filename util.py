@@ -1,15 +1,19 @@
-from glimpse.src.query import answer_query
-from glimpse.src.user import generate_synthetic_queries_by_topic
+import glimpse.src.query as query
+import glimpse.src.user as user
 import numpy as np
+from importlib import reload
 
+reload(user)
+reload(query)
 
-def generate_queries(kg, topics, number_of_queries, n_topic_mids, algorithm=generate_synthetic_queries_by_topic):
-    return extract_answers_from_queries(kg, algorithm(kg, topics, number_of_queries, n_topic_mids))
+def generate_queries(kg, topics, number_of_queries, n_topic_mids, algorithm=user.generate_synthetic_queries_by_topic):
+    queries = algorithm(kg, topics, number_of_queries, n_topic_mids)
+    return extract_answers_from_queries(kg, queries)
 
 
 def extract_answers_from_queries(kg, queries):
     return [
-        answer_query(kg, q) for q in queries
+        query.answer_query(kg, q) for q in queries
     ]
 
 
