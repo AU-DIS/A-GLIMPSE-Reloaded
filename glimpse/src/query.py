@@ -237,7 +237,8 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
         inferential_chain.append(predicate)
         entities = KG.triples_[entity_index][predicate]
 
-        entity = random.choice(list(entities))
+        entity_index = random.choice(list(entities))
+        entity = KG.entity_to_id[entity_index]
 
     # Add constraints and get the answers
     result = {entity_index}
