@@ -1,3 +1,4 @@
+from glimpse.src import glimpse
 import util as util
 from glimpse.src import user
 import topics as t
@@ -34,34 +35,45 @@ def trainer(kg, queries, k, rounds):
     nt = randint(int(queries/1000), int(queries/5))
 
     queries = util.generate_queries(kg, topics, queries, nt)
+    run_name = time.time()
 
-    logging.info("KG entities: " + str(kg.number_of_entities))
-    logging.info("KG triples: " + str(kg.number_of_triples_))
-    logging.info(f"k, nt = {k} {nt}")
+    with open(f"runs/{run_name}.csv", "w+") as f:
+        f.write(
+            "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary, speed_feedback\n")
 
-    unique_entities = set()
-    for x in queries:
-        for y in x:
-            unique_entities.add(y)
-    no_unique_entities = len(unique_entities)
-    unique_entities = set()
+        write_buffer = []
 
-    glimpse_online = g.Online_GLIMPSE(kg, k)
-    # glimpse_online.init_bandit_weights(queries)
+        unique_entities = set()
+        for x in queries:
+            for y in x:
+                unique_entities.add(y)
+        no_unique_entities = len(unique_entities)
+        unique_entities = set()
 
-    for i in range(rounds):
-        logging.info(f"Round {i+1}/{rounds}")
-        t1 = time.time()
-        summary = glimpse_online.construct_summary()
-        t2 = time.time()
-        round_queries = queries
+        glimpse_online = g.Online_GLIMPSE(kg, k)
 
-        mean_accuracy = compute_accuracy(kg, round_queries, summary)
+        for i in range(rounds):
+            t1 = time.time()
+            summary = glimpse_online.construct_summary()
+            t2 = time.time()
+            round_queries = queries
 
-        logging.info("Giving feedback")
-        glimpse_online.update_queries(queries)
-        t3 = time.time()
-        logging.info(f"Speed: Summary: {t2 - t1} Feedback: {t3 - t2}")
+            unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
+                kg, round_queries, summary)
+
+            t3 = time.time()
+            write_buffer.append(
+                f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
+
+            if i % (rounds//10) == 0:
+                for line in write_buffer:
+                    f.write(line)
+                    write_buffer = []
+                    glimpse_online.save_model(f"models/{run_name}")
+
+        for line in write_buffer:
+            f.write(line)
+        glimpse_online.save_model(f"models/{run_name}")
 
 
 def compute_accuracy(kg, queries, summary):
@@ -77,8 +89,4 @@ def compute_accuracy(kg, queries, summary):
                 unique_hits.add(answer)
                 total_hits = total_hits + 1
 
-    logging.info(
-        f"{bcolors.OKCYAN}Number of hits: {total_hits}/{total} unique: {len(unique_hits)}/{no_unique_entities}")
-    logging.info(
-        f"     Accuracy: {total_hits/total}, {len(unique_hits) / no_unique_entities}{bcolors.ENDC}")
-    return len(unique_hits) / no_unique_entities
+    return len(unique_hits), no_unique_entities, total_hits, total, len(unique_hits)/no_unique_entities

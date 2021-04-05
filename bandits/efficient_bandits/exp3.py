@@ -11,19 +11,27 @@ import logging
 
 
 class exp3_efficient_bandit(object):
-    def __init__(self, kg):
+    def __init__(self, kg, model_path=None):
         reload(heap)
         self.number_of_triples = kg.number_of_triples_
-        self.weights = np.full(self.number_of_triples,
-                               1/self.number_of_triples)
         # np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 1
         self.round = 0
-        self.distribution = heap.sumheap(self.weights)
+        if model_path is None:
+            self.weights = np.full(self.number_of_triples,
+                                   1/self.number_of_triples)
+            self.distribution = heap.sumheap(self.weights)
+        else:
+            self.weights = np.load(model_path)
+            self.distribution = heap.sumheap(self.weights)
+
         self.gamma = 0.07
         self.kg = kg
         # heap.check(self.distribution, 1)
+
+    def save_model(self, model_path):
+        np.save(model_path, self.weights)
 
     def choose_triple(self):
         self.choice = heap.hsample(self.distribution)
@@ -87,20 +95,6 @@ class exp3_efficient_bandit(object):
             if e2 in queries:
                 reward = 0.5
             self.give_reward(reward, choice_index)
-
-    # def create_rewards(self, queries, chosen_entities):
-    #    queries_set = set()
-     #   for qs in queries:
-     #       for q in qs:
-     #           queries_set.add(q)
-     #   queries = queries_set
-
-        # for i in chosen_entities:
-         #   name = self.kg.entities_list_[i]
-          #  if name in queries:
-           #     self.give_reward(1, i)
-            # else:
-            #   self.give_reward(0, i)
 
     def create_rewards_triples(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)

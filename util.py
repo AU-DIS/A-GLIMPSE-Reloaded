@@ -6,6 +6,7 @@ from importlib import reload
 reload(user)
 reload(query)
 
+
 def generate_queries(kg, topics, number_of_queries, n_topic_mids, algorithm=user.generate_synthetic_queries_by_topic):
     queries = algorithm(kg, topics, number_of_queries, n_topic_mids)
     return extract_answers_from_queries(kg, queries)
