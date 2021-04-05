@@ -58,11 +58,10 @@ def trainer(kg, queries, k, rounds):
             summary = glimpse_online.construct_summary()
             t2 = time.time()
             round_queries = queries
-
+            glimpse_online.update_queries(round_queries)
+            t3 = time.time()
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
                 kg, round_queries, summary)
-
-            t3 = time.time()
             write_buffer.append(
                 f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
 
