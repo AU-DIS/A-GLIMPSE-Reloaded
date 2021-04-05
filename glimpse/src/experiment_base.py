@@ -165,13 +165,15 @@ class KnowledgeGraph(object):
 
             # Map triple to an ID
             # Use the indices for maximum memory efficieny (At expensive of later time)
-            if e1 not in self.triple_ids.keys():
-                self.triple_ids[e1] = {}
-                self.triple_ids[e1][r] = {e2: self.number_of_triples_}
-            elif r not in self.triple_ids[e1].keys():
-                self.triple_ids[e1][r] = {e2: self.number_of_triples_}
+            if e1_index not in self.triple_ids.keys():
+                self.triple_ids[e1_index] = {}
+                self.triple_ids[e1_index][r_index] = {
+                    e2_index: self.number_of_triples_}
+            elif r_index not in self.triple_ids[e1_index].keys():
+                self.triple_ids[e1_index][r_index] = {
+                    e2_index: self.number_of_triples_}
             else:
-                self.triple_ids[e1][r][e2] = self.number_of_triples_
+                self.triple_ids[e1_index][r_index][e2_index] = self.number_of_triples_
 
             self.index_to_triple[self.number_of_triples_] = (
                 e1_index, r_index, e2_index)

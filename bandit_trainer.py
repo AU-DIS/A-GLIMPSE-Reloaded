@@ -48,9 +48,10 @@ def trainer(kg, queries, k, rounds):
             for y in x:
                 unique_entities.add(y)
         no_unique_entities = len(unique_entities)
-        unique_entities = set()
 
-        glimpse_online = g.Online_GLIMPSE(kg, k)
+        glimpse_online = g.Online_GLIMPSE(
+            kg, k, initial_entities=unique_entities)
+        unique_entities = set()
 
         for i in range(rounds):
             t1 = time.time()

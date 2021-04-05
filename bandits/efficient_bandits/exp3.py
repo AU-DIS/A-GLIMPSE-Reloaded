@@ -11,18 +11,41 @@ import logging
 
 
 class exp3_efficient_bandit(object):
-    def __init__(self, kg, model_path=None):
+    def __init__(self, kg, model_path=None, initial_entities=None):
         reload(heap)
         self.number_of_triples = kg.number_of_triples_
         # np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 1
         self.round = 0
-        if model_path is None:
+        if model_path is not None:
+            self.weights = np.load(model_path)
+            self.distribution = heap.sumheap(self.weights)
+        elif initial_entities is None:
             self.weights = np.full(self.number_of_triples,
                                    1/self.number_of_triples)
             self.distribution = heap.sumheap(self.weights)
-        else:
+        elif initial_entities is not None:
+            priviliged_triples = set()
+            for entity in initial_entities:
+                if entity in kg.triples_.keys():
+                    for r in kg.triples_[entity]:
+                        for e2 in kg.triples_[entity][r]:
+                            priviliged_triples.add(
+                                kg.triple_ids[entity][r][e2])
+
+            priviliged_weight = 1/len(priviliged_triples)
+            self.weights = np.full(self.number_of_triples, (1 - priviliged_weight) /
+                                   (self.number_of_triples - len(priviliged_triples)))
+
+            # This extra step means we do not have to perform a divison every time
+            # we update the weight of a priviliged triple
+            priviliged_weight = priviliged_weight/len(priviliged_triples)
+            for triple_id in priviliged_triples:
+                self.weights[triple_id] = priviliged_weight
+            self.distribution = heap.sumheap(self.weights)
+
+        elif model_path is not None:
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
 

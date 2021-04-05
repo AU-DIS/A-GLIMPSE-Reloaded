@@ -9,7 +9,7 @@ import bandits.efficient_bandits.exp3 as e
 
 
 class Online_GLIMPSE(object):
-    def __init__(self, kg, K, model_name=None):
+    def __init__(self, kg, K, model_name=None, initial_entities=None):
         garbage.collect()
         reload(e)
         # //TODO: I hate having to store this reference for memory overhead reasons
@@ -18,10 +18,8 @@ class Online_GLIMPSE(object):
         self.KG = kg
         self.K = K
         self.number_of_triples = kg.number_of_triples()
-        if model_name is None:
-            self.bandit = e.exp3_efficient_bandit(kg)
-        else:
-            self.bandit = e.exp3_efficient_bandit(kg, model_name)
+
+        self.bandit = e.exp3_efficient_bandit(kg, model_name, initial_entities)
         self.choices = set()
 
     def save_model(self, model_name):
