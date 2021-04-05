@@ -111,6 +111,10 @@ class exp3_efficient_bandit(object):
         queries = queries_set
 
         for (e1, r, e2) in summary:
+            e1 = self.kg.entities_[e1]
+            e2 = self.kg.entities_[e2]
+            r = self.kg.relationships_[r]
+
             choice_index = self.kg.triple_ids[e1][r][e2]
             reward = 0
             if e1 in queries:
