@@ -27,7 +27,7 @@ no_unique_entities = 0
 topics = t.topics
 
 
-def trainer(kg, queries, k, rounds):
+def trainer(kg, queries, k, rounds, model_name=None):
     global no_unique_entities
     reload(t)
     reload(g)
@@ -49,8 +49,12 @@ def trainer(kg, queries, k, rounds):
                 unique_entities.add(y)
         no_unique_entities = len(unique_entities)
 
-        glimpse_online = g.Online_GLIMPSE(
-            kg, k, initial_entities=unique_entities)
+        if model_name is None:
+            glimpse_online = g.Online_GLIMPSE(
+                kg, k, initial_entities=unique_entities)
+        else:
+            glimpse_online = g.Online_GLIMPSE(
+                kg, k, model_name=model_name)
         unique_entities = set()
 
         for i in range(rounds):

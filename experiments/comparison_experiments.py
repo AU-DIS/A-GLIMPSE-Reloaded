@@ -1,3 +1,4 @@
+from os import write
 from glimpse.src import glimpse
 import util as util
 from glimpse.src import user
@@ -26,6 +27,11 @@ def generate_queries(kg, number_of_queries):
 
     return util.generate_queries(kg, t.topics, number_of_queries, nt)
 
+def split_queries(queries, rounds, init_percentage = 0.20):
+    init_queries = queries[0: int(len(queries)*init_percentage)]
+    round_queries = queries[0: int(len(queries)*(1-init_percentage))]
+    splitted_queries = [round_queries[i*(len(round_queries)/rounds):(i+1)*(len(round_queries)/rounds)] for i in range(rounds)]
+    return init_queries, splitted_queries
 
 # //TODO: Make sure it works
 def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
@@ -40,14 +46,14 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
 
     write_buffer = []
     # //TODO: Fix the path
-    with open(f"runs/{run_name}.csv", "w+") as f:
+    with open(f"experiments_results/{run_name}_static.csv", "w+") as f:
         f.write(
             "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary\n")
 
         for i in range(rounds):
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
                 # //TODO: Is it :i?
-                kg, queries_validation[:i], summary)
+                kg, queries_validation[:i+1], summary)
 
             write_buffer.append(
                 f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
@@ -60,43 +66,39 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
 
 def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
     global run_name
-    t1 = time.time()
 
-    # //TODO: Make sure GLIMPSE works with new indices
-    summary = GLIMPSE(
-        kg, k, queries_train, e
-    )
-    t2 = time.time()
 
     write_buffer = []
     # //TODO: Fix the path
-    with open(f"runs/{run_name}.csv", "w+") as f:
+    with open(f"experiments_results/{run_name}_recompute.csv", "w+") as f:
         f.write(
             "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary\n")
 
         for i in range(rounds):
+            queries_train.extend([queries_validation[i]])
+            
+            if i % n == 0:
+                t1 = time.time()
+                summary = GLIMPSE(
+                    kg, k, queries_train, e
+                )
+                t2 = time.time()
+                for line in write_buffer:
+                    f.write(line)
+                write_buffer = []
+
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
                 # //TODO: Is it :i?
-                kg, queries_validation[:i], summary)
-
-            # //TODO: Is it placed right?
-            if i % n == 0:
-                summary = GLIMPSE(
-                    # //TODO: Is it :i ?
-                    kg, k, queries_train.extend([queries_validation[:i]]), e
-                )
+                kg, queries_validation[:i+1], summary)
 
             write_buffer.append(
                 f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
 
-        for line in write_buffer:
-            f.write(line)
 
-
-def bandit_glimpse(kg, k, rounds, e, queries_train, queries_validation):
+def bandit_glimpse(kg, k, rounds, e, queries_train, queries_validation, model_path):
 
     # //TODO: Fix path
-    with open(f"runs/{run_name}.csv", "w+") as f:
+    with open(f"experiments_results/{run_name}_bandit.csv", "w+") as f:
         f.write(
             "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary, speed_feedback\n")
 
