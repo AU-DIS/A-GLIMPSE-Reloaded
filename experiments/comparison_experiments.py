@@ -30,12 +30,15 @@ def generate_queries(kg, number_of_queries):
 def split_queries(queries, rounds, init_percentage = 0.20):
     init_queries = queries[0: int(len(queries)*init_percentage)]
     round_queries = queries[0: int(len(queries)*(1-init_percentage))]
-    splitted_queries = [round_queries[i*(len(round_queries)/rounds):(i+1)*(len(round_queries)/rounds)] for i in range(rounds)]
+    splitted_queries = [round_queries[i*(len(round_queries)//rounds):(i+1)*(len(round_queries)//rounds)] for i in range(rounds)]
     return init_queries, splitted_queries
 
 # //TODO: Make sure it works
 def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
     global run_name
+
+    print(len(kg.entities_))
+
     t1 = time.time()
 
     # //TODO: Make sure GLIMPSE works with new indices
