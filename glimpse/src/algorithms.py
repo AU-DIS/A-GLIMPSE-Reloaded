@@ -9,9 +9,7 @@ def query_vector(KG, query_log_answers):
     x = np.zeros(KG.number_of_entities)
     for i in range(len(query_log_answers)):
         for entity in query_log_answers[i]:
-            entity_id = KG.entity_to_id[entity]
-            print(entity_id)
-            x[entity_id] += 1/len(query_log_answers[i])
+            x[entity] += 1/len(query_log_answers[i])
     return x
 
 def query_vector_rdf(KG,query_log_answers):

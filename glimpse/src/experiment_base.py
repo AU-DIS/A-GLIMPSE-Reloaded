@@ -200,11 +200,11 @@ class KnowledgeGraph(object):
         for e1 in self.triples_:
             for r in self.triples_[e1]:
                 for e2 in self.triples_[e1][r]:
-                    row.append(self.entity_id(e1))
-                    col.append(self.entity_id(e2))
+                    row.append(e1)
+                    col.append(e2)
                     data.append(1)
 
-        n = self.number_of_entities()
+        n = self.number_of_entities
         return csr_matrix(
             (np.array(data), (np.array(row), np.array(col))),
             shape=(n, n))
@@ -217,12 +217,12 @@ class KnowledgeGraph(object):
         row, col, data = [], [], []
         for e1 in self.triples_:
             for r in self.triples_[e1]:
-                for e2 in self.triples_[e1][r]:
-                    row.append(self.entity_id(e1))
-                    col.append(self.entity_id(e1))
+                for _ in self.triples_[e1][r]:
+                    row.append(e1)
+                    col.append(e1)
                     data.append(1)
 
-        n = self.number_of_entities()
+        n = self.number_of_entities
         D = csr_matrix(
             (1 / np.array(data), (np.array(row), np.array(col))),
             shape=(n, n))
@@ -238,7 +238,7 @@ class KnowledgeGraph(object):
         :param entity: str
         :return value: entity float value
         """
-        return self.entity_value_[self.entities_[entity]]
+        return self.entity_value_[entity]
 
     def triple_value(self, triple):
         """
@@ -252,6 +252,7 @@ class KnowledgeGraph(object):
         :param query_log: list of queries as dicts
         :param power: number of terms in Taylor expansion
         """
+
         self.reset()
 
         # Perform random walk on the KG
@@ -275,11 +276,9 @@ class KnowledgeGraph(object):
             for r in self.triples_[e1]:
                 for e2 in self.triples_[e1][r]:
                     triple = (e1, r, e2)
-                    eid1, eid2 = self.entity_id(e1), self.entity_id(e2)
-                    r_id = self.relationship_id_[r]
                     # TODO not the same calculation as the paper (where is the relation)
                     self.triple_value_[triple] = np.log(
-                        x[eid1] * y[r_id] * x[eid2] + 1)
+                        x[e1] * y[r] * x[e2] + 1)
 
     def query_dir(self):
         raise NotImplementedError

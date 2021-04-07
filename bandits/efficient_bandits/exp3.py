@@ -11,7 +11,7 @@ import logging
 
 
 class exp3_efficient_bandit(object):
-    def __init__(self, kg, model_path=None, initial_entities=None):
+    def __init__(self, kg, model_path=None, initial_entities=None, gamma=0.07):
         reload(heap)
         self.number_of_triples = kg.number_of_triples_
         # np.random.uniform(0.01, 1, size=number_of_triples)
@@ -49,7 +49,7 @@ class exp3_efficient_bandit(object):
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
 
-        self.gamma = 0.07
+        self.gamma = gamma
         self.kg = kg
         # heap.check(self.distribution, 1)
 
@@ -144,19 +144,6 @@ class exp3_efficient_bandit(object):
             rewards.append(acc_reward)
             choice_indices.append(index)
         return rewards, choice_indices
-
-    def create_initialisation_rewards(self, queries, kg, k):
-        queries = random.sample(queries, k)
-        index_triple_set = set()
-        for i, triple in enumerate(kg.triples()):
-            (e1, _, e2) = triple
-            if e1 or e2 in queries:
-                index_triple_set.add((i, triple))
-
-        print("Finished looping")
-        rewards, choice_indices = self.create_rewards(
-            queries, index_triple_set)
-        self.give_reward(rewards, choice_indices)
 
 
 # draw: [float] -> int
