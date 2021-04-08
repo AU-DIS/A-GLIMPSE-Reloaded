@@ -1,8 +1,9 @@
 import os
 from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
 from glimpse.src.query import generate_query
-from experiments import calculateAccuracyAndTotals
-from glimpse.src.glimpse import GLIMPSE, Summary
+import repl_assistant as repl
+import experiments.comparison_experiments as exp
+import numpy as np
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -52,3 +53,44 @@ def synthetic_experiment():
     mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
         test_split, summary)
     print(mean_accuracy, total_entities, total_count)
+
+
+def parameters_experiment():
+    repl.load_kg()
+
+    # Make sure to explicitly set the run_name every time
+    exp.run_name = exp.generate_run_name()
+
+    # We will use the same queries for all the experiments
+    q = exp.generate_queries(repl.kg, 100000)
+    init, rounds = exp.split_queries(q, 1000)
+
+    # //TODO: Small hack in naming is necessary, fix
+    initial_run_name = exp.run_name
+    E = np.linspace(0.01, 1, 20, endpoint=False)
+
+    for i in range(0, 20):
+        exp.run_name = f"{initial_run_name}_epsilon_test_{i}"
+        exp.run_static_glimpse(repl.kg, 10000, 1000,
+                               E[i], init, rounds)
+
+    for i in range(0, 20):
+        exp.run_name = f"{initial_run_name}_epsilon_test_{i}"
+        exp.recompute_glimpse(repl.kg, 10000, 1000,
+                              E[i], init, rounds, 100)
+
+    for i in range(0, 20):
+        exp.run_name = f"{initial_run_name}_recompute_interval_test_{i}"
+        exp.recompute_glimpse(repl.kg, 10000, 1000,
+                              0.1, init, rounds, 10 * (i+1))
+
+    num_entities = len(q)
+    S = np.linspace(0.01 * num_entities, 10 * num_entities, 20)
+    for i in range(0, 20):
+        exp.run_name = f"{initial_run_name}_summary_size_{i}"
+        exp.run_static_glimpse(repl.kg, S[i], 1000,
+                               0.1, init, rounds)
+
+
+if __name__ == "__main__":
+    parameters_experiment()

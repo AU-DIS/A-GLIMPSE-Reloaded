@@ -2,6 +2,9 @@ import glimpse.src.query as query
 import glimpse.src.user as user
 import numpy as np
 from importlib import reload
+import urllib.request
+from bs4 import BeautifulSoup
+import requests
 
 reload(user)
 reload(query)
@@ -16,6 +19,38 @@ def extract_answers_from_queries(kg, queries):
     return [
         query.answer_query(kg, q) for q in queries
     ]
+
+
+def listFD(url, ext=''):
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, 'html.parser')
+    return [url + '/' + node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
+
+
+def downLoadDBPedia39():
+    url = 'http://downloads.dbpedia.org/3.9/en/'
+    ext = 'nt.bz2'
+    print('Beginning file download with urllib2...')
+    data_file_names = [
+        "article_categories_en.nt.bz2",
+        "geo_coordinates_en.nt.bz2",
+        "long_abstracts_en.nt.bz2",
+        "persondata_en.nt.bz2",
+        "category_labels_en.nt.bz2",
+        "instance_types_en.nt.bz2",
+        "mappingbased_properties_en.nt.bz2",
+        "topical_concepts_en.nt.bz2"
+    ]
+
+    for file in listFD(url, ext):
+        name = str(file)
+        print(name)
+
+        name = file.split("http://downloads.dbpedia.org/3.9/en//")[1]
+
+        if name in data_file_names:
+            urllib.request.urlretrieve(file, './dbpedia39/' + name)
+            print("Downloaded")
 
 
 def makeTrainingTestSplit(answers, kg):
