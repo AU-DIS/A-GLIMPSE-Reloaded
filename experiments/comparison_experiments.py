@@ -86,10 +86,11 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
             "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
 
         round_queries = []
-        queries_validation.insert(0, queries_train)
+        queue_queries = queries_validation.copy()
+        queue_queries.insert(0, queries_train)
 
         for i in range(rounds+1):
-            round_queries.extend(queries_validation[i])
+            round_queries.extend(queue_queries[i])
             
             if i % n == 0:
                 t1 = time.time()
