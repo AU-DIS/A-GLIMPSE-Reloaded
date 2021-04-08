@@ -33,8 +33,8 @@ def generate_queries(kg, number_of_queries):
     return queries
 
 def split_queries(queries, rounds, init_percentage = 0.20):
-    init_queries = queries[0: int(len(queries)*init_percentage)]
-    round_queries = queries[0: int(len(queries)*(1-init_percentage))]
+    init_queries = queries[:int(len(queries)*init_percentage)]
+    round_queries = queries[int(len(queries)*init_percentage):]
     splitted_queries = [round_queries[i*(len(round_queries)//rounds):(i+1)*(len(round_queries)//rounds)] for i in range(rounds)]
     return init_queries, splitted_queries
 
@@ -57,8 +57,8 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
     with open(f"experiments_results/{run_name}_static.csv", "w+") as f:
         f.write(f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {len(queries_train)}\n")
         f.write(
-            "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary\n")
-        round_queries = queries_train
+            "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
+        round_queries = queries_train.copy()
         for i in range(rounds):
             round_queries.extend(queries_validation[i])
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
@@ -83,7 +83,7 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
     with open(f"experiments_results/{run_name}_recompute.csv", "w+") as f:
         f.write(f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {len(queries_train)}, n: {n}\n")
         f.write(
-            "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary\n")
+            "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
 
         round_queries = []
         queries_validation.insert(0, queries_train)
@@ -117,7 +117,7 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
     with open(f"experiments_results/{run_name}_bandit.csv", "w+") as f:
         f.write(f"# k: {k}, rounds: {rounds}, gamma: {gamma}, len_queries_train: {len(queries_train)}, model_path: {model_path}\n")
         f.write(
-            "round, unique_hits, no_unique_entities, total_hits, total, accuracy, speed_summary, speed_feedback\n")
+            "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary,speed_feedback\n")
 
         write_buffer = []
 
@@ -129,7 +129,7 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
         glimpse_online = g.Online_GLIMPSE(
             kg, k, initial_entities=entities, gamma=gamma)
 
-        round_queries = queries_train
+        round_queries = queries_train.copy()
         for i in range(rounds):
             t1 = time.time()
             summary = glimpse_online.construct_summary()
