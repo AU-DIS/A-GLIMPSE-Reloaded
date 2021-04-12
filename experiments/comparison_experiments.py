@@ -45,7 +45,6 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
     print(len(kg.entities_))
 
     t1 = time.time()
-
     # //TODO: Make sure GLIMPSE works with new indices
     summary = GLIMPSE(
         kg, k, queries_train, e
@@ -77,6 +76,12 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
 def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
     global run_name
 
+    t1 = time.time()
+    # //TODO: Make sure GLIMPSE works with new indices
+    summary = GLIMPSE(
+        kg, k, queries_train, e
+    )
+    t2 = time.time()
 
     write_buffer = []
     # //TODO: Fix the path
@@ -87,12 +92,18 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
 
         round_queries = []
         queue_queries = queries_validation.copy()
-        queue_queries.insert(0, queries_train)
 
-        for i in range(rounds+1):
+        for i in range(rounds):
             round_queries.extend(queue_queries[i])
             
-            if i % n == 0:
+            unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
+                # //TODO: Is it :i?
+                kg, round_queries, glimpse_summary_to_list_of_entities(summary))
+
+            write_buffer.append(
+                f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
+
+            if (i+1) % n == 0:
                 t1 = time.time()
                 summary = GLIMPSE(
                     kg, k, round_queries, e
@@ -101,13 +112,6 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
                 for line in write_buffer:
                     f.write(line)
                 write_buffer = []
-
-            unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                # //TODO: Is it :i?
-                kg, round_queries, glimpse_summary_to_list_of_entities(summary))
-            if i > 0:
-                write_buffer.append(
-                    f"{i},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
         
         for line in write_buffer:
             f.write(line)
