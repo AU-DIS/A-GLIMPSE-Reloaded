@@ -118,41 +118,55 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
 
 
 def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path, gamma=0.07):
+    with open(f"experiments_results/{run_name}_bandit_regret.csv", "w+") as regret_file:
+        regret_file.write("round,k,regret\n")
+        with open(f"experiments_results/{run_name}_bandit.csv", "w+") as f:
+            f.write(f"# k: {k}, rounds: {rounds}, gamma: {gamma}, len_queries_train: {len(queries_train)}, model_path: {model_path}\n")
+            f.write(
+                "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary,speed_feedback\n")
 
-    with open(f"experiments_results/{run_name}_bandit.csv", "w+") as f:
-        f.write(f"# k: {k}, rounds: {rounds}, gamma: {gamma}, len_queries_train: {len(queries_train)}, model_path: {model_path}\n")
-        f.write(
-            "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary,speed_feedback\n")
+            write_buffer = []
+            regret_buffer = []
 
-        write_buffer = []
+            entities = set()
+            for q in queries_train:
+                for answer in q:
+                    entities.add(answer)
 
-        entities = set()
-        for q in queries_train:
-            for answer in q:
-                entities.add(answer)
+            glimpse_online = g.Online_GLIMPSE(
+                kg, k, initial_entities=entities, gamma=gamma)
 
-        glimpse_online = g.Online_GLIMPSE(
-            kg, k, initial_entities=entities, gamma=gamma)
+            round_queries = queries_train.copy()
+            for i in range(rounds):
+                t1 = time.time()
+                summary = glimpse_online.construct_summary()
+                t2 = time.time()
 
-        round_queries = queries_train.copy()
-        for i in range(rounds):
-            t1 = time.time()
-            summary = glimpse_online.construct_summary()
-            t2 = time.time()
+                round_queries.extend(queries_validation[i])
+                regrets = glimpse_online.update_queries(round_queries)
+                for j, regret in enumerate(regrets):
+                    regret_buffer.append(f"{i+1},{j+1},{regret}\n")
+                
+                t3 = time.time()
 
-            round_queries.extend(queries_validation[i])
-            glimpse_online.update_queries(round_queries)
-            
-            t3 = time.time()
+                unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
+                    kg, round_queries, glimpse_summary_to_list_of_entities(summary))
 
-            unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                kg, round_queries, glimpse_summary_to_list_of_entities(summary))
+                write_buffer.append(
+                    f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
 
-            write_buffer.append(
-                f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
+                if i % 1000:
+                    for line in write_buffer:
+                        f.write(line)
+                    for line in regret_buffer:
+                        regret_file.write(line)
+                    write_buffer = []
+                    regret_buffer = []
 
-        for line in write_buffer:
-            f.write(line)
+            for line in write_buffer:
+                f.write(line)
+        for line in regret_buffer:
+            regret_file.write(line)
 
 # //TODO: Fix for GLIMPSE summaries
 def compute_accuracy(kg, queries, summary):

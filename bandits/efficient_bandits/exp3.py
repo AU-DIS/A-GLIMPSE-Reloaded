@@ -62,23 +62,21 @@ class exp3_efficient_bandit(object):
         return self.choice
 
     def choose_triples(self, k):
-        triples = set()
+        triples = list()
         # print("Choosing triples")
         while len(triples) < k:
             c = heap.hsample(self.distribution)
             # c = random.sample(range(len(self.weights)), 1)[0]
-            if c not in triples:
-                triples.add(c)
-        triples = set([(index, triple) for (index, triple)
-                       in zip(triples, self.kg.get_triples(triples))])
+            triples.append(c)
+        triples = zip(triples, self.kg.get_triples(triples))
         return triples
 
     def choose_k(self, k):
-        entities = set()
+        entities = list()
         # logging.debug("Choosing triples")
         while len(entities) < k:
             c = heap.hsample(self.distribution)
-            entities.add(c)
+            entities.append(c)
 
         return entities
 
@@ -110,6 +108,8 @@ class exp3_efficient_bandit(object):
                 queries_set.add(q)
         queries = queries_set
 
+        regrets = []
+
         for (e1, r, e2) in summary:
             e1 = self.kg.entities_[e1]
             e2 = self.kg.entities_[e2]
@@ -122,6 +122,8 @@ class exp3_efficient_bandit(object):
             if e2 in queries:
                 reward = 0.5
             self.give_reward(reward, choice_index)
+            regrets.append(self.reward_max-reward)
+        return regrets
 
     def create_rewards_triples(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)

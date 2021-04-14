@@ -91,6 +91,23 @@ def parameters_experiment():
         exp.run_static_glimpse(repl.kg, S[i], 1000,
                                0.1, init, rounds)
 
+def bandit_experiment():
+    repl.load_kg()
+
+    # Make sure to explicitly set the run_name every time
+    exp.run_name = exp.generate_run_name()
+
+    # We will use the same queries for all the experiments
+    q = exp.generate_queries(repl.kg, 10000000)
+    init, rounds = exp.split_queries(q, 1000000, init_percentage=10000/10000000)
+
+    # //TODO: Small hack in naming is necessary, fix
+    initial_run_name = exp.run_name
+    E = np.linspace(0.01, 1, 10, endpoint=False)
+
+    for i in range(0, 10):
+        exp.run_name = f"{initial_run_name}_gamma_test_{i}"
+        exp.bandit_glimpse(repl.kg, 10000, 1000000, init, rounds, None, gamma=E[i])
 
 if __name__ == "__main__":
-    parameters_experiment()
+    bandit_experiment()

@@ -20,7 +20,7 @@ class Online_GLIMPSE(object):
         self.number_of_triples = kg.number_of_triples()
 
         self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
-        self.choices = set()
+        self.choices = list()
 
     def save_model(self, model_path):
         self.bandit.save_model(model_path)
@@ -63,4 +63,4 @@ class Online_GLIMPSE(object):
         return triples
 
     def update_queries(self, queries):
-        self.bandit.create_rewards(queries, self.choices)
+        return self.bandit.create_rewards(queries, self.choices)
