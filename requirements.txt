@@ -1,0 +1,4 @@
+numpy
+importlib
+bs4
+requests
