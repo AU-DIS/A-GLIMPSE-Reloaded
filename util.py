@@ -82,3 +82,6 @@ def calculateAccuracyAndTotals(user_log_test_u, summary):
             accuracies.append(count / total_answers)
 
     return np.mean(np.array(accuracies)), total_entities, total_count
+
+if __name__ == "__main__":
+    downLoadDBPedia39()
