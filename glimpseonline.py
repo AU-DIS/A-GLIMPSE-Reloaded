@@ -5,7 +5,7 @@ from glimpse.src.glimpse import Summary, SummaryMethod
 import numpy as np
 from importlib import reload
 import gc as garbage
-import bandits.efficient_bandits.exp3 as e
+import bandits.efficient_bandits.exp3m as e
 
 
 class Online_GLIMPSE(object):
@@ -19,7 +19,8 @@ class Online_GLIMPSE(object):
         self.K = K
         self.number_of_triples = kg.number_of_triples()
 
-        self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
+        #self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
+        self.bandit = e.exp3_m(kg, model_path, initial_entities, gamma)
         self.choices = list()
 
     def save_model(self, model_path):
