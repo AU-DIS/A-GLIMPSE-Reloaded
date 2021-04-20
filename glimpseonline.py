@@ -5,13 +5,15 @@ from glimpse.src.glimpse import Summary, SummaryMethod
 import numpy as np
 from importlib import reload
 import gc as garbage
-import bandits.efficient_bandits.exp3m as e
+import bandits.efficient_bandits.exp3m as exp3m
+import bandits.efficient_bandits.exp3 as exp3
 
 
 class Online_GLIMPSE(object):
-    def __init__(self, kg, K, model_path=None, initial_entities=None, gamma=0.07):
+    def __init__(self, kg, K, model_path=None, initial_entities=None, gamma=0.07, bandit="exp3m"):
         garbage.collect()
-        reload(e)
+        reload(exp3m)
+        reload(exp3)
         # //TODO: I hate having to store this reference for memory overhead reasons
         # But the triples function is not deterministic due to KGs use of set to
         # Return them
@@ -20,7 +22,11 @@ class Online_GLIMPSE(object):
         self.number_of_triples = kg.number_of_triples()
 
         #self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
-        self.bandit = e.exp3_m(kg, model_path, initial_entities, gamma)
+        if bandit == "exp3m":
+            self.bandit = exp3m.exp3_m(kg, model_path, initial_entities, gamma)
+        else:
+            self.bandit = exp3.exp3_efficient_bandit(
+                kg, model_path, initial_entities, gamma)
         self.choices = list()
 
     def save_model(self, model_path):

@@ -5,6 +5,7 @@ import random
 from importlib import reload
 import bandits.efficient_bandits.efficient_heap as heap
 import logging
+import time
 
 
 class exp3_m(object):
@@ -29,7 +30,11 @@ class exp3_m(object):
         one_probs = set()
         candidates = set(range(len(probabilities)))
 
+        # Calling np.random.uniform in the loop doubles execution time, allocate ahead of time
+        randoms = set(np.random.uniform(0, 1, len(candidates)))
         # We assume that all probabilities initally are 0 < p < 1
+        no_loops = 0
+        loop_sum = []
         while len(candidates) > 1:
             i = candidates.pop()
             j = candidates.pop()
@@ -37,7 +42,8 @@ class exp3_m(object):
             alpha = min(1 - probabilities[i], probabilities[j])
             beta = min(probabilities[i], 1 - probabilities[j])
 
-            threshold = np.random.uniform(0, 1, 1)
+            threshold = randoms.pop()
+
             if threshold > (beta/(alpha+beta)):
                 probabilities[i] = probabilities[i] + alpha
                 probabilities[j] = probabilities[j] - alpha
@@ -56,12 +62,17 @@ class exp3_m(object):
             elif probabilities[j] > 0:
                 candidates.add(j)
 
+            no_loops += 1
+        print(
+            f"Number of loops {no_loops}")
         return np.array(list(one_probs))
 
     def choose_k(self, k):
+        t1 = time.time()
         max_j = np.argmax(self.weights)
         K = self.number_of_triples
         self.S_0 = set()
+        threshold_i = 0
         # Step 1
         sorted_weight_indices = np.argsort(self.weights)[::-1]
         if self.weights[max_j] >= (1/k - self.gamma/K) * (np.sum(self.weights)/(1-self.gamma)):
@@ -75,26 +86,38 @@ class exp3_m(object):
                 self.S_0.add(index)
                 if alpha_t_candidate == rhs:
                     alpha_t = alpha_t_candidate
+                    threshold_i = i
                     break
         # Step 2
+        t2 = time.time()
         W = set(sorted_weight_indices)
         weights_prime = np.zeros(K)
-        for i in W.difference(self.S_0):
-            weights_prime[i] = self.weights[i]
-        for i in self.S_0:
-            weights_prime[i] = alpha_t
+        diff_indices = list(W.difference(self.S_0))
+        weights_prime[diff_indices] = self.weights[diff_indices]
+        if len(self.S_0) > 0:
+            S0_indices = list(self.S_0)
+            weights_prime[S0_indices] = alpha_t
+
+        t3 = time.time()
+        # for i in W.difference(self.S_0):
+        #    weights_prime[i]= self.weights[i]
+        # for i in self.S_0:
+        #    weights_prime[i]= alpha_t
         # Step 3
         w_prime_sum = np.sum(weights_prime)
         gamma_factor = (1 - self.gamma)
         gamma_term = self.gamma/K
-        self.probabilities = np.array([
-            k * (gamma_factor * w_i/w_prime_sum + gamma_term)
-            for w_i in weights_prime
-        ])
 
+        self.probabilities = 1/w_prime_sum * weights_prime * gamma_factor
+        self.probabilities = self.probabilities + gamma_term
+        self.probabilities = self.probabilities * k
+
+        t4 = time.time()
         # Step 4
         choices = self.depround(self.probabilities)
         # print(choices)
+        print(
+            f"Done with alphas {t2 - t1}, manage weights {t3 - t2}, construct probabilities {t4 - t3}")
         return choices
 
     def create_rewards(self, queries, summary):

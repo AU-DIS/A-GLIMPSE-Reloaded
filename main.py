@@ -1,9 +1,10 @@
 import os
+from time import sleep
 from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
 from glimpse.src.query import generate_query
 import repl_assistant as repl
-import experiments.comparison_experiments as exp
 import numpy as np
+from multiprocessing import Process
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -56,58 +57,70 @@ def synthetic_experiment():
 
 
 def parameters_experiment():
+    import experiments.comparison_experiments as comp
     repl.load_kg()
 
     # Make sure to explicitly set the run_name every time
-    exp.run_name = exp.generate_run_name()
+    comp.run_name = comp.generate_run_name()
 
     # We will use the same queries for all the experiments
-    q = exp.generate_queries(repl.kg, 100000)
-    init, rounds = exp.split_queries(q, 1000)
+    q = comp.generate_queries(repl.kg, 100000)
+    init, rounds = comp.split_queries(q, 1000)
 
     # //TODO: Small hack in naming is necessary, fix
-    initial_run_name = exp.run_name
+    initial_run_name = comp.run_name
     E = np.linspace(0.01, 1, 20, endpoint=False)
 
     for i in range(0, 20):
-        exp.run_name = f"{initial_run_name}_epsilon_test_{i}"
-        exp.run_static_glimpse(repl.kg, 10000, 1000,
-                               E[i], init, rounds)
+        comp.run_name = f"{initial_run_name}_epsilon_test_{i}"
+        comp.run_static_glimpse(repl.kg, 10000, 1000,
+                                E[i], init, rounds)
 
     for i in range(0, 20):
-        exp.run_name = f"{initial_run_name}_epsilon_test_{i}"
-        exp.recompute_glimpse(repl.kg, 10000, 1000,
-                              E[i], init, rounds, 100)
+        comp.run_name = f"{initial_run_name}_epsilon_test_{i}"
+        comp.recompute_glimpse(repl.kg, 10000, 1000,
+                               E[i], init, rounds, 100)
 
     for i in range(0, 20):
-        exp.run_name = f"{initial_run_name}_recompute_interval_test_{i}"
-        exp.recompute_glimpse(repl.kg, 10000, 1000,
-                              0.1, init, rounds, 10 * (i+1))
+        comp.run_name = f"{initial_run_name}_recompute_interval_test_{i}"
+        comp.recompute_glimpse(repl.kg, 10000, 1000,
+                               0.1, init, rounds, 10 * (i+1))
 
     num_entities = len(q)
     S = np.linspace(0.01 * num_entities, 10 * num_entities, 20)
     for i in range(0, 20):
-        exp.run_name = f"{initial_run_name}_summary_size_{i}"
-        exp.run_static_glimpse(repl.kg, S[i], 1000,
-                               0.1, init, rounds)
+        comp.run_name = f"{initial_run_name}_summary_size_{i}"
+        comp.run_static_glimpse(repl.kg, S[i], 1000,
+                                0.1, init, rounds)
 
-def bandit_experiment():
+
+def bandit_experiment(bandit, rounds):
+    import experiments.comparison_experiments as comp
     repl.load_kg()
 
     # Make sure to explicitly set the run_name every time
-    exp.run_name = exp.generate_run_name()
+    comp.run_name = comp.generate_run_name()
 
     # We will use the same queries for all the experiments
-    q = exp.generate_queries(repl.kg, 10000000)
-    init, rounds = exp.split_queries(q, 1000000, init_percentage=10000/10000000)
+    q = comp.generate_queries(repl.kg, 10000)
+    init, rounds = comp.split_queries(
+        q, 2)
 
     # //TODO: Small hack in naming is necessary, fix
-    initial_run_name = exp.run_name
+    initial_run_name = comp.run_name
     E = np.linspace(0.01, 1, 10, endpoint=False)
 
     for i in range(0, 10):
-        exp.run_name = f"{initial_run_name}_gamma_test_{i}"
-        exp.bandit_glimpse(repl.kg, 10000, 1000000, init, rounds, None, gamma=E[i])
+        comp.run_name = f"{initial_run_name}_gamma_test_{i}"
+        comp.bandit_glimpse(repl.kg, 100000, 5000000, init,
+                            rounds, None, gamma=E[i], bandit=bandit, same_queries=True)
+
 
 if __name__ == "__main__":
-    bandit_experiment()
+    from multiprocessing import Process
+    p1 = Process(target=bandit_experiment, args=('exp3m', 50000,))
+    sleep(2)
+    p2 = Process(target=bandit_experiment, args=('exp3', 5000000,))
+
+    p1.start()
+    p2.start()

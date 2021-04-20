@@ -19,7 +19,6 @@ def generate_run_name():
 run_name = generate_run_name()
 
 
-# //TODO: Make a split
 def generate_queries(kg, number_of_queries):
     nt = randint(int(number_of_queries/5), int(number_of_queries))
     reload(g)
@@ -40,8 +39,6 @@ def split_queries(queries, rounds, init_percentage=0.20):
         i+1)*(len(round_queries)//rounds)] for i in range(rounds)]
     return init_queries, splitted_queries
 
-# //TODO: Make sure it works
-
 
 def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
     global run_name
@@ -49,14 +46,13 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
     print(len(kg.entities_))
 
     t1 = time.time()
-    # //TODO: Make sure GLIMPSE works with new indices
+
     summary = GLIMPSE(
         kg, k, queries_train, e
     )
     t2 = time.time()
 
     write_buffer = []
-    # //TODO: Fix the path
     with open(f"experiments_results/{run_name}_static.csv", "w+") as f:
         f.write(
             f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {len(queries_train)}\n")
@@ -66,7 +62,6 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
         for i in range(rounds):
             round_queries.extend(queries_validation[i])
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                # //TODO: Is it :i?
                 kg, round_queries, glimpse_summary_to_list_of_entities(summary))
 
             write_buffer.append(
@@ -75,21 +70,17 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
         for line in write_buffer:
             f.write(line)
 
-# //TODO: Audit it
-
 
 def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
     global run_name
 
     t1 = time.time()
-    # //TODO: Make sure GLIMPSE works with new indices
     summary = GLIMPSE(
         kg, k, queries_train, e
     )
     t2 = time.time()
 
     write_buffer = []
-    # //TODO: Fix the path
     with open(f"experiments_results/{run_name}_recompute.csv", "w+") as f:
         f.write(
             f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {len(queries_train)}, n: {n}\n")
@@ -103,7 +94,6 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
             round_queries.extend(queue_queries[i])
 
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                # //TODO: Is it :i?
                 kg, round_queries, glimpse_summary_to_list_of_entities(summary))
 
             write_buffer.append(
@@ -123,9 +113,9 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
             f.write(line)
 
 
-def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path, gamma=0.07):
+def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path, gamma=0.07, bandit="exp3m", same_queries=False):
 
-    reload(g)
+    # reload(g)
 
     with open(f"experiments_results/{run_name}_bandit_regret.csv", "w+") as regret_file:
         regret_file.write("round,k,regret\n")
@@ -144,7 +134,7 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
                     entities.add(answer)
 
             glimpse_online = g.Online_GLIMPSE(
-                kg, k, initial_entities=entities, gamma=gamma)
+                kg, k, initial_entities=entities, gamma=gamma, bandit=bandit)
 
             round_queries = queries_train.copy()
             for i in range(rounds):
@@ -152,7 +142,10 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
                 summary = glimpse_online.construct_summary()
                 t2 = time.time()
 
-                round_queries.extend(queries_validation[i])
+                if not same_queries:
+                    round_queries.extend(queries_validation[i])
+                else:
+                    round_queries = queries_train
                 regrets = glimpse_online.update_queries(round_queries)
                 for j, regret in enumerate(regrets):
                     regret_buffer.append(f"{i+1},{j+1},{regret}\n")
@@ -165,7 +158,7 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
                 write_buffer.append(
                     f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
 
-                if i % 1000:
+                if i % 5000:
                     for line in write_buffer:
                         f.write(line)
                     for line in regret_buffer:
@@ -178,11 +171,8 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
         for line in regret_buffer:
             regret_file.write(line)
 
-# //TODO: Fix for GLIMPSE summaries
-
 
 def compute_accuracy(kg, queries, summary):
-    # //TODO: Get no unique entities from bandit trainer code
     unique_entities = set()
     total_hits = 0
     total = 0
