@@ -10,6 +10,7 @@ import time
 import glimpseonline as g
 from importlib import reload
 from random import random, sample, randint, shuffle
+from queries import queries
 
 
 def generate_run_name():
@@ -19,50 +20,26 @@ def generate_run_name():
 run_name = generate_run_name()
 
 
-def generate_queries(kg, number_of_queries):
-    nt = randint(int(number_of_queries/5), int(number_of_queries))
-    reload(g)
-    reload(util)
-
-    topics = sample(kg.entity_id_.keys(), kg.number_of_entities)
-
-    queries = util.generate_queries(kg, topics, number_of_queries, nt)
-    queries = [q for q in queries if len(q) > 0]
-    shuffle(queries)
-    return queries
-
-
-def split_queries(queries, rounds, init_percentage=0.20):
-    init_queries = queries[:int(len(queries)*init_percentage)]
-    round_queries = queries[int(len(queries)*init_percentage):]
-    splitted_queries = [round_queries[i*(len(round_queries)//rounds):(
-        i+1)*(len(round_queries)//rounds)] for i in range(rounds)]
-    return init_queries, splitted_queries
-
-
-def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
+def run_static_glimpse(kg, k, rounds, e, queries):
     global run_name
-
-    print(len(kg.entities_))
 
     t1 = time.time()
 
     summary = GLIMPSE(
-        kg, k, queries_train, e
+        kg, k, queries.batch(), e
     )
     t2 = time.time()
 
     write_buffer = []
     with open(f"experiments_results/{run_name}_static.csv", "w+") as f:
         f.write(
-            f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {len(queries_train)}\n")
+            f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {queries.batch_size}\n")
         f.write(
             "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
-        round_queries = queries_train.copy()
         for i in range(rounds):
-            round_queries.extend(queries_validation[i])
+
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                kg, round_queries, glimpse_summary_to_list_of_entities(summary))
+                kg, queries.batch(), glimpse_summary_to_list_of_entities(summary))
 
             write_buffer.append(
                 f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
@@ -71,38 +48,34 @@ def run_static_glimpse(kg, k, rounds, e, queries_train, queries_validation):
             f.write(line)
 
 
-def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
+def recompute_glimpse(kg, k, rounds, e, queries, n):
     global run_name
 
     t1 = time.time()
     summary = GLIMPSE(
-        kg, k, queries_train, e
+        kg, k, queries.batch(), e
     )
     t2 = time.time()
 
     write_buffer = []
     with open(f"experiments_results/{run_name}_recompute.csv", "w+") as f:
         f.write(
-            f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {len(queries_train)}, n: {n}\n")
+            f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {queries.batch_size}, n: {n}\n")
         f.write(
             "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
 
-        round_queries = []
-        queue_queries = queries_validation.copy()
-
         for i in range(rounds):
-            round_queries.extend(queue_queries[i])
-
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                kg, round_queries, glimpse_summary_to_list_of_entities(summary))
+                kg, queries.batch(), glimpse_summary_to_list_of_entities(summary))
 
             write_buffer.append(
                 f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
 
             if (i+1) % n == 0:
                 t1 = time.time()
+
                 summary = GLIMPSE(
-                    kg, k, round_queries, e
+                    kg, k, queries.all_batches(), e
                 )
                 t2 = time.time()
                 for line in write_buffer:
@@ -113,9 +86,7 @@ def recompute_glimpse(kg, k, rounds, e, queries_train, queries_validation, n):
             f.write(line)
 
 
-def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path, gamma=0.07, bandit="exp3m", same_queries=False):
-
-    # reload(g)
+def bandit_glimpse(kg, k, rounds, queries, model_path, gamma=0.07, bandit="exp3m", same_queries=False):
 
     with open(f"experiments_results/{run_name}_bandit_regret.csv", "w+") as regret_file:
         regret_file.write("round,k,regret\n")
@@ -128,32 +99,31 @@ def bandit_glimpse(kg, k, rounds, queries_train, queries_validation, model_path,
             write_buffer = []
             regret_buffer = []
 
-            entities = set()
-            for q in queries_train:
-                for answer in q:
-                    entities.add(answer)
+            # If we are going to be using the same queries
+            if same_queries:
+                q = queries.batch()
 
             glimpse_online = g.Online_GLIMPSE(
-                kg, k, initial_entities=entities, gamma=gamma, bandit=bandit)
+                kg, k, initial_entities=None, gamma=gamma, bandit=bandit)
 
-            round_queries = queries_train.copy()
             for i in range(rounds):
                 t1 = time.time()
                 summary = glimpse_online.construct_summary()
                 t2 = time.time()
 
-                if not same_queries:
-                    round_queries.extend(queries_validation[i])
+                if same_queries:
+                    q = q
                 else:
-                    round_queries = queries_train
-                regrets = glimpse_online.update_queries(round_queries)
+                    q = queries.batch()
+
+                regrets = glimpse_online.update_queries(q)
                 for j, regret in enumerate(regrets):
                     regret_buffer.append(f"{i+1},{j+1},{regret}\n")
 
                 t3 = time.time()
 
                 unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                    kg, round_queries, bandit_glimpse_summary_to_list_of_entities(summary, kg))
+                    kg, q, bandit_glimpse_summary_to_list_of_entities(summary, kg))
 
                 write_buffer.append(
                     f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
@@ -179,12 +149,11 @@ def compute_accuracy(kg, queries, summary):
     unique_hits = set()
 
     for q in queries:
-        for answer in q:
-            total += 1
-            unique_entities.add(answer)
-            if answer in summary:
-                unique_hits.add(answer)
-                total_hits = total_hits + 1
+        total += 1
+        unique_entities.add(q)
+        if q in summary:
+            unique_hits.add(q)
+            total_hits += 1
 
     return len(unique_hits), len(unique_entities), total_hits, total, len(unique_hits)/len(unique_entities)
 

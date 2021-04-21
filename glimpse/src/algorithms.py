@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def query_vector(KG, query_log_answers):
     """
     :param KG: KnowledgeGraph
@@ -7,24 +8,25 @@ def query_vector(KG, query_log_answers):
     :return x: query vector (n_entities,)
     """
     x = np.zeros(KG.number_of_entities)
-    for i in range(len(query_log_answers)):
-        for entity in query_log_answers[i]:
-            x[entity] += 1/len(query_log_answers[i])
+    for entity in query_log_answers:
+        x[entity] += 1/len(query_log_answers)
     return x
 
-def query_vector_rdf(KG,query_log_answers):
+
+def query_vector_rdf(KG, query_log_answers):
     x = np.zeros(KG.number_of_entities)
     y = np.zeros(KG.no_relationsships)
     for i in range(len(query_log_answers)):
         for triple in query_log_answers[i]:
-            e1,r,e2 = triple
+            e1, r, e2 = triple
             e1_id = KG.entity_to_id[e1]
             e2_id = KG.entity_to_id[e2]
             r_id = KG.relationships_[r]
             x[e1_id] += 1 / len(query_log_answers[i])
             x[e2_id] += 1 / len(query_log_answers[i])
             y[r_id] += 1 / len(query_log_answers[i])
-    return x,y
+    return x, y
+
 
 def query_vector_old(KG, query_log_answers):
     """
@@ -38,6 +40,7 @@ def query_vector_old(KG, query_log_answers):
         x[entity_id] += 1
     return x
 
+
 def random_walk_with_restart(M, x, c=0.15, power=1):
     """
     :param M: scipy sparse transition matrix
@@ -50,7 +53,7 @@ def random_walk_with_restart(M, x, c=0.15, power=1):
         (I - M)^-1 = I + M + M^2 + M^3 ...
     """
     q = c * np.copy(x)
-    r = np.copy(q) # result vector
+    r = np.copy(q)  # result vector
 
     for _ in range(power):
         q = (1 - c) * M * q
