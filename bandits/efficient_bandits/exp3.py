@@ -103,9 +103,8 @@ class exp3_efficient_bandit(object):
 
     def create_rewards(self, queries, summary):
         queries_set = set()
-        for qs in queries:
-            for q in qs:
-                queries_set.add(q)
+        for q in queries:
+            queries_set.add(q)
         queries = queries_set
 
         regrets = []

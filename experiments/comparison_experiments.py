@@ -13,133 +13,117 @@ from random import random, sample, randint, shuffle
 from queries import queries
 
 
-def generate_run_name():
-    return time.time()
+def run_static_glimpse(k, rounds, e, experiment):
 
+    list_of_properties = ["round", "unique_hits", "no_unique_entities",
+                          "total_hits", "total", "accuracy", "speed_summary"]
+    annotation = f"static_{k}_{e}"
+    comment = f"k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {experiment.batch_size()}"
 
-run_name = generate_run_name()
+    experiment_id = experiment.create_experiment(
+        list_of_properties, annotation, comment)
 
-
-def run_static_glimpse(kg, k, rounds, e, queries):
-    global run_name
-
-    t1 = time.time()
-
-    summary = GLIMPSE(
-        kg, k, queries.batch(), e
-    )
-    t2 = time.time()
-
-    write_buffer = []
-    with open(f"experiments_results/{run_name}_static.csv", "w+") as f:
-        f.write(
-            f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {queries.batch_size}\n")
-        f.write(
-            "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
-        for i in range(rounds):
-
-            unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                kg, queries.batch(), glimpse_summary_to_list_of_entities(summary))
-
-            write_buffer.append(
-                f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
-
-        for line in write_buffer:
-            f.write(line)
-
-
-def recompute_glimpse(kg, k, rounds, e, queries, n):
-    global run_name
+    experiment.begin_experiment(experiment_id)
 
     t1 = time.time()
-    summary = GLIMPSE(
-        kg, k, queries.batch(), e
-    )
+    summary = GLIMPSE(experiment.kg(), k, experiment.batch(), e)
     t2 = time.time()
 
-    write_buffer = []
-    with open(f"experiments_results/{run_name}_recompute.csv", "w+") as f:
-        f.write(
-            f"# k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {queries.batch_size}, n: {n}\n")
-        f.write(
-            "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary\n")
+    for i in range(rounds):
+        unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
+            experiment.kg(), experiment.batch(), glimpse_summary_to_list_of_entities(summary))
 
-        for i in range(rounds):
+        experiment.add_experiment_results(experiment_id, [
+            i+1, unique_hits, no_unique,
+            total_hits, total, accuracy, t2-t1
+        ])
+
+    experiment.end_experiment(experiment_id)
+
+
+def recompute_glimpse(k, rounds, e, n, experiment):
+    comment = f" k: {k}, rounds: {rounds}, e: {e}, len_queries_train: {experiment.batch_size()}"
+    list_of_properties = ["round", "unique_hits", "no_unique_entities",
+                          "total_hits", "total", "accuracy", "speed_summary"]
+    annotation = f"recompute_{k}_{e}_{n}"
+
+    experiment_id = experiment.create_experiment(
+        list_of_properties, annotation, comment)
+
+    t1 = time.time()
+    summary = GLIMPSE(experiment.kg(), k, experiment.batch(), e)
+    t2 = time.time()
+
+    for i in range(rounds):
+        unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
+            experiment.kg(), experiment.batch(), glimpse_summary_to_list_of_entities(summary))
+
+        experiment.add_experiment_results(experiment_id, [
+            i+1, unique_hits, no_unique, total_hits, total, accuracy, t2-t1
+        ])
+
+        if (i+1) % n == 0:
+            t1 = time.time()
+            summary = GLIMPSE(
+                experiment.kg(), k, experiment.all_batches(), e
+            )
+            t2 = time.time()
+
+    experiment.end_experiment(experiment_id)
+
+
+def bandit_glimpse(k, rounds, experiment, gamma=0.07, bandit="exp3m", same_queries=False):
+    regret_list_of_properties = ["round", "k", "regret"]
+    list_of_properties = ["round", "unique_hits", "no_unique_entities",
+                          "total_hits", "total", "accuracy", "speed_summary", "speed_feedback"]
+
+    comment = f"k: {k}, rounds: {rounds}, gamma: {gamma}, len_queries_train: {experiment.batch_size()}, model_path: {None}, bandit={bandit}, same_queries={same_queries}"
+
+    annotation_regret = "regret"
+    annotation = "accuracy"
+
+    regret_id = experiment.create_experiment(
+        regret_list_of_properties, annotation_regret, "")
+
+    normal_id = experiment.create_experiment(
+        list_of_properties, annotation, comment)
+
+    experiment.begin_experiment(regret_id)
+    experiment.begin_experiment(normal_id)
+
+    q = experiment.batch()
+
+    # If we are going to be using the same queries
+    if same_queries:
+        q = experiment.batch()
+
+    glimpse_online = g.Online_GLIMPSE(
+        experiment.kg(), k, initial_entities=None, gamma=gamma, bandit=bandit)
+
+    for i in range(rounds):
+        t1 = time.time()
+        summary = glimpse_online.construct_summary()
+        t2 = time.time()
+
+        if same_queries:
+            q = q
+        else:
+            q = experiment.batch()
+
+        regrets = glimpse_online.update_queries(q)
+        for j, regret in enumerate(regrets):
+            experiment.add_experiment_results(regret_id, [i+1, j+1, regret])
+
+            t3 = time.time()
+
             unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                kg, queries.batch(), glimpse_summary_to_list_of_entities(summary))
+                experiment.kg(), q, bandit_glimpse_summary_to_list_of_entities(summary, experiment.kg()))
 
-            write_buffer.append(
-                f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1}\n")
+            experiment.add_experiment_results(
+                normal_id, [i+1, unique_hits, no_unique, total_hits, total, accuracy, t2-t1, t3-t2])
 
-            if (i+1) % n == 0:
-                t1 = time.time()
-
-                summary = GLIMPSE(
-                    kg, k, queries.all_batches(), e
-                )
-                t2 = time.time()
-                for line in write_buffer:
-                    f.write(line)
-                write_buffer = []
-
-        for line in write_buffer:
-            f.write(line)
-
-
-def bandit_glimpse(kg, k, rounds, queries, model_path, gamma=0.07, bandit="exp3m", same_queries=False):
-
-    with open(f"experiments_results/{run_name}_bandit_regret.csv", "w+") as regret_file:
-        regret_file.write("round,k,regret\n")
-        with open(f"experiments_results/{run_name}_bandit.csv", "w+") as f:
-            f.write(
-                f"# k: {k}, rounds: {rounds}, gamma: {gamma}, len_queries_train: {len(queries_train)}, model_path: {model_path}\n")
-            f.write(
-                "round,unique_hits,no_unique_entities,total_hits,total,accuracy,speed_summary,speed_feedback\n")
-
-            write_buffer = []
-            regret_buffer = []
-
-            # If we are going to be using the same queries
-            if same_queries:
-                q = queries.batch()
-
-            glimpse_online = g.Online_GLIMPSE(
-                kg, k, initial_entities=None, gamma=gamma, bandit=bandit)
-
-            for i in range(rounds):
-                t1 = time.time()
-                summary = glimpse_online.construct_summary()
-                t2 = time.time()
-
-                if same_queries:
-                    q = q
-                else:
-                    q = queries.batch()
-
-                regrets = glimpse_online.update_queries(q)
-                for j, regret in enumerate(regrets):
-                    regret_buffer.append(f"{i+1},{j+1},{regret}\n")
-
-                t3 = time.time()
-
-                unique_hits, no_unique, total_hits, total, accuracy = compute_accuracy(
-                    kg, q, bandit_glimpse_summary_to_list_of_entities(summary, kg))
-
-                write_buffer.append(
-                    f"{i+1},{unique_hits},{no_unique},{total_hits},{total},{accuracy},{t2-t1},{t3-t2}\n")
-
-                if i % 5000:
-                    for line in write_buffer:
-                        f.write(line)
-                    for line in regret_buffer:
-                        regret_file.write(line)
-                    write_buffer = []
-                    regret_buffer = []
-
-            for line in write_buffer:
-                f.write(line)
-        for line in regret_buffer:
-            regret_file.write(line)
+    experiment.end_experiment(regret_id)
+    experiment.end_experiment(normal_id)
 
 
 def compute_accuracy(kg, queries, summary):

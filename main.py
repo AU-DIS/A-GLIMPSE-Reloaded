@@ -1,3 +1,4 @@
+from experiments.comparison_experiments import bandit_glimpse, recompute_glimpse, run_static_glimpse
 import os
 from time import sleep
 from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
@@ -5,6 +6,7 @@ from glimpse.src.query import generate_query
 import repl_assistant as repl
 import numpy as np
 from multiprocessing import Process
+import experiment
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -57,70 +59,54 @@ def synthetic_experiment():
 
 
 def parameters_experiment():
-    import experiments.comparison_experiments as comp
-    repl.load_kg()
 
-    # Make sure to explicitly set the run_name every time
-    comp.run_name = comp.generate_run_name()
+    exp = experiment.Experiment("Static", "Parameters experiment")
 
-    # We will use the same queries for all the experiments
-    q = comp.generate_queries(repl.kg, 100000)
-    init, rounds = comp.split_queries(q, 1000)
-
-    # //TODO: Small hack in naming is necessary, fix
-    initial_run_name = comp.run_name
     E = np.linspace(0.01, 1, 20, endpoint=False)
+    for i in range(0, 20):
+        run_static_glimpse(10000, 30, 0.E[i], exp)
 
     for i in range(0, 20):
-        comp.run_name = f"{initial_run_name}_epsilon_test_{i}"
-        comp.run_static_glimpse(repl.kg, 10000, 1000,
-                                E[i], init, rounds)
+        recompute_glimpse(10000, 100, E[i], 10, exp)
 
     for i in range(0, 20):
-        comp.run_name = f"{initial_run_name}_epsilon_test_{i}"
-        comp.recompute_glimpse(repl.kg, 10000, 1000,
-                               E[i], init, rounds, 100)
-
-    for i in range(0, 20):
-        comp.run_name = f"{initial_run_name}_recompute_interval_test_{i}"
-        comp.recompute_glimpse(repl.kg, 10000, 1000,
-                               0.1, init, rounds, 10 * (i+1))
-
-    num_entities = len(q)
-    S = np.linspace(0.01 * num_entities, 10 * num_entities, 20)
-    for i in range(0, 20):
-        comp.run_name = f"{initial_run_name}_summary_size_{i}"
-        comp.run_static_glimpse(repl.kg, S[i], 1000,
-                                0.1, init, rounds)
+        recompute_glimpse(10000, 100, 0.1, 5 * (i+1), exp)
 
 
-def bandit_experiment(bandit, rounds):
-    import experiments.comparison_experiments as comp
-    repl.load_kg()
+def exp3m_parameters():
+    exp = experiment.Experiment(
+        comment="Diverse experiment med bandit parametre")
 
-    # Make sure to explicitly set the run_name every time
-    comp.run_name = comp.generate_run_name()
-
-    # We will use the same queries for all the experiments
-    q = comp.generate_queries(repl.kg, 10000)
-    init, rounds = comp.split_queries(
-        q, 2)
-
-    # //TODO: Small hack in naming is necessary, fix
-    initial_run_name = comp.run_name
     E = np.linspace(0.01, 1, 10, endpoint=False)
 
     for i in range(0, 10):
-        comp.run_name = f"{initial_run_name}_gamma_test_{i}"
-        comp.bandit_glimpse(repl.kg, 100000, 5000000, init,
-                            rounds, None, gamma=E[i], bandit=bandit, same_queries=True)
+        bandit_glimpse(10000, 1000, exp, E[i], same_queries=True)
+
+    for i in range(0, 10):
+        bandit_glimpse(10000, 1000, exp, E[i], same_queries=False)
+
+
+def exp3m_longrun():
+    exp = experiment.Experiment(
+        comment="exp3m longrun same queries")
+
+    bandit_glimpse(10000, 3000, exp, 0.1, same_queries=True)
+
+
+def exp_longrun():
+    exp = experiment.Experiment(comment="exp3 longrun")
+
+    bandit_glimpse(10000, 10800, exp, 0.1, "exp3", same_queries=True)
 
 
 if __name__ == "__main__":
     from multiprocessing import Process
-    p1 = Process(target=bandit_experiment, args=('exp3m', 50000,))
-    sleep(2)
-    p2 = Process(target=bandit_experiment, args=('exp3', 5000000,))
+    p1 = Process(target=parameters_experiment)
+    p2 = Process(target=exp3m_parameters)
+    p3 = Process(target=exp3m_longrun)
+    p4 = Process(target=exp_longrun)
 
     p1.start()
     p2.start()
+    p3.start()
+    p4.start()
