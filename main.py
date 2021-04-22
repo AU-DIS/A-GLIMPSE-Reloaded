@@ -64,7 +64,7 @@ def parameters_experiment():
 
     E = np.linspace(0.01, 1, 20, endpoint=False)
     for i in range(0, 20):
-        run_static_glimpse(10000, 30, 0.E[i], exp)
+        run_static_glimpse(10000, 30, E[i], exp)
 
     for i in range(0, 20):
         recompute_glimpse(10000, 100, E[i], 10, exp)
