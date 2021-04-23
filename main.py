@@ -106,7 +106,7 @@ if __name__ == "__main__":
     p3 = Process(target=exp3m_longrun)
     p4 = Process(target=exp_longrun)
 
-    p1.start()
+    # p1.start()
     p2.start()
     p3.start()
-    p4.start()
+    # p4.start()

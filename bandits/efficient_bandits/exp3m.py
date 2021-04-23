@@ -29,42 +29,37 @@ class exp3_m(object):
     def depround(self, probabilities):
         one_probs = set()
         candidates = set(range(len(probabilities)))
-
+        probs = probabilities.copy()
         # Calling np.random.uniform in the loop doubles execution time, allocate ahead of time
         randoms = set(np.random.uniform(0, 1, len(candidates)))
         # We assume that all probabilities initally are 0 < p < 1
-        no_loops = 0
-        loop_sum = []
         while len(candidates) > 1:
             i = candidates.pop()
             j = candidates.pop()
 
-            alpha = min(1 - probabilities[i], probabilities[j])
-            beta = min(probabilities[i], 1 - probabilities[j])
+            alpha = min(1 - probs[i], probs[j])
+            beta = min(probs[i], 1 - probs[j])
 
             threshold = randoms.pop()
 
             if threshold > (beta/(alpha+beta)):
-                probabilities[i] = probabilities[i] + alpha
-                probabilities[j] = probabilities[j] - alpha
+                probs[i] = probs[i] + alpha
+                probs[j] = probs[j] - alpha
             else:
-                probabilities[i] = probabilities[i] - beta
-                probabilities[j] = probabilities[j] + beta
+                probs[i] = probs[i] - beta
+                probs[j] = probs[j] + beta
 
             # Put back into pool or element has been chosen
-            if probabilities[i] == 1:
+            if probs[i] == 1:
                 one_probs.add(i)
-            elif probabilities[i] > 0:
+            elif probs[i] > 0:
                 candidates.add(i)
 
-            if probabilities[j] == 1:
+            if probs[j] == 1:
                 one_probs.add(j)
-            elif probabilities[j] > 0:
+            elif probs[j] > 0:
                 candidates.add(j)
 
-            no_loops += 1
-        print(
-            f"Number of loops {no_loops}")
         return np.array(list(one_probs))
 
     def choose_k(self, k):
@@ -72,7 +67,7 @@ class exp3_m(object):
         max_j = np.argmax(self.weights)
         K = self.number_of_triples
         self.S_0 = set()
-        threshold_i = 0
+        s_0_candidates = set()
         # Step 1
         sorted_weight_indices = np.argsort(self.weights)[::-1]
         if self.weights[max_j] >= (1/k - self.gamma/K) * (np.sum(self.weights)/(1-self.gamma)):
@@ -83,10 +78,10 @@ class exp3_m(object):
                 x = i
                 y = np.sum(self.weights[sorted_weight_indices[i:]])
                 alpha_t_candidate = -(y * rhs)/(x*rhs - 1)
-                self.S_0.add(index)
+                s_0_candidates.add(index)
                 if alpha_t_candidate == rhs:
                     alpha_t = alpha_t_candidate
-                    threshold_i = i
+                    self.S_0 = s_0_candidates
                     break
         # Step 2
         t2 = time.time()
