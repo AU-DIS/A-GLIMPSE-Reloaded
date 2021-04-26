@@ -6,12 +6,12 @@ import time
 
 
 class Experiment(object):
-    def __init__(self, type_string="bandit", comment=""):
+    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01):
         self.id = generate_id()
         self.kg_ = DBPedia('dbpedia39')
         self.kg_.load()
         self.type_tring = type_string
-        self.Q_ = Queries(self.kg_)
+        self.Q_ = Queries(self.kg_, adversarial_degree=adversarial_degree)
         self.path_ = f"experiments_results/{self.id}"
         self.write_buffers_ = {}
         self.write_every_ = 1000

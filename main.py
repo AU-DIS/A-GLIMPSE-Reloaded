@@ -98,15 +98,25 @@ def exp_longrun():
 
     bandit_glimpse(10000, 10800, exp, 0.1, "exp3", same_queries=True)
 
+def exp3m_non_adversarial():
+    exp = experiment.Experiment(
+        comment="exp3m non adversarial queries",
+        adversarial_degree=0.00001)
+
+    bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
+
+def exp3_non_adversarial():
+    exp = experiment.Experiment(
+        comment="exp3 non adversarial queries",
+        adversarial_degree=0.00001)
+
+    bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
+
 
 if __name__ == "__main__":
     from multiprocessing import Process
-    p1 = Process(target=parameters_experiment)
-    p2 = Process(target=exp3m_parameters)
-    p3 = Process(target=exp3m_longrun)
-    p4 = Process(target=exp_longrun)
+    p1 = Process(target=exp3m_non_adversarial)
+    p2 = Process(target=exp3_non_adversarial)
 
-    # p1.start()
+    p1.start()
     p2.start()
-    p3.start()
-    # p4.start()

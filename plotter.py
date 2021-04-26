@@ -10,7 +10,11 @@ def plot_accuracy(input_path, output_path):
     plt.show()
 
 def plot_regret(input_path, output_path):
-    df = pd.read_csv(input_path)
+    df = pd.read_csv(input_path, skiprows=[0])
     df["cumsum"] = df["regret"].cumsum()
-    df.plot.line(y="cumsum")
+    d = np.polyfit(df["k"]+df["round"]*df["k"].max(),df["cumsum"],1)
+    f = np.poly1d(d)
+    df.insert(4,"trend",f(df["k"]+df["round"]*df["k"].max()))
+    ax = df.plot.line(y="cumsum")
+    df.plot(y="trend", color="Red", ax=ax)
     plt.show()
