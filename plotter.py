@@ -49,7 +49,7 @@ def plot_theoretical_regret(input_path, output_path):
 def plot_all__experiment_regrets():
     for d in os.walk("bandit_results"):
         for f in os.listdir(d[0]):
-            if "regret" in f and '.DS_Store' not in f and '.png' not in f:
+            if "regret" in f and '.DS_Store' not in f and '.png' not in f and not os.path.exists(f"{d[0]}/{f.strip('.csv')}.png"):
                 p = Process(target=plot_regret, args=(
                     f"{d[0]}/{f}", f"{d[0]}/{f.strip('.csv')}.png",))
                 p.start()
@@ -58,7 +58,7 @@ def plot_all__experiment_regrets():
 def plot_all_accuracy():
     for d in os.walk("bandit_results"):
         for f in os.listdir(d[0]):
-            if "accuracy" in f and 'Store' not in f and '.png' not in f:
+            if "accuracy" in f and 'Store' not in f and '.png' not in f and not os.path.exists(f"{d[0]}/{f.strip('.csv')}.png"):
                 p = Process(target=plot_accuracy, args=(
                     f"{d[0]}/{f}",  f"{d[0]}/{f.strip('.csv')}.png",))
                 p.start()
@@ -67,10 +67,7 @@ def plot_all_accuracy():
 def plot_all_theoretical_regrets():
     for d in os.walk("theoretical"):
         for f in os.listdir(d[0]):
-            if 'csv' in f and '.DS_Store' not in f and '.png' not in f:
+            if 'csv' in f and '.DS_Store' not in f and '.png' not in f and not os.path.exists(f"{d[0]}/{f.strip('.csv')}.png"):
                 p = Process(target=plot_theoretical_regret, args=(
                     f"{d[0]}/{f}", f"{d[0]}/{f.strip('.csv')}.png",))
                 p.start()
-
-
-plot_all_theoretical_regrets()
