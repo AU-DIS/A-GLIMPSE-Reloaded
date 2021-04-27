@@ -18,9 +18,7 @@ def plot_regret(input_path, output_path):
     if 'k' not in df.columns:
         df['k'] = 1
 
-    df["cumsum"] = df["regret"]
-    df["cumsum"] = (df["cumsum"]-df.min()["cumsum"]) / \
-        (df.max()["cumsum"]-df.min()["cumsum"])
+    df["cumsum"] = df["regret"].cumsum()
     d = np.polyfit(df["k"]+df["round"]*df["k"].max(), df["cumsum"], 1)
     f = np.poly1d(d)
     df.insert(4, "trend", f(df["k"]+df["round"]*df["k"].max()))
