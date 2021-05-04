@@ -8,6 +8,11 @@ import logging
 from collections import defaultdict
 from scipy.sparse import csr_matrix
 import bz2
+try:
+    import cPickle as pickle
+except ModuleNotFoundError:
+    import pickle
+
 
 from .algorithms import query_vector, random_walk_with_restart, query_vector_rdf
 
@@ -15,6 +20,16 @@ from .algorithms import query_vector, random_walk_with_restart, query_vector_rdf
 FREEBASE_DATA_DIR = '/x/tsafavi/data/WebQSDP/data/'
 YAGO_DATA_DIR = '/x/tsafavi/data/yago3/'
 DBPEDIA_DATA_DIR = 'dbpedia39'
+
+
+def save_kg(kg, filename):
+    with open(f"graphs/{filename}", 'wb') as f:
+        pickle.dump(kg, f, -1)
+
+
+def load_kg(filename):
+    with open(f"graphs/{filename}", 'rb') as input:
+        return pickle.load(input)
 
 
 class KnowledgeGraph(object):
