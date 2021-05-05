@@ -1,7 +1,7 @@
 from experiments.comparison_experiments import bandit_glimpse, recompute_glimpse, run_static_glimpse
 import os
 from time import sleep
-from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase
+from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, load_kg
 from glimpse.src.query import generate_query
 import repl_assistant as repl
 import numpy as np
@@ -114,9 +114,13 @@ def exp3_non_adversarial():
 
 
 if __name__ == "__main__":
-    from multiprocessing import Process
-    p1 = Process(target=exp3m_non_adversarial)
-    p2 = Process(target=exp3_non_adversarial)
+    #from multiprocessing import Process
+    #p1 = Process(target=exp3m_non_adversarial)
+    #p2 = Process(target=exp3_non_adversarial)
 
-    p1.start()
-    p2.start()
+    #p1.start()
+    #p2.start()
+    exp = experiment.Experiment(comment="Test of random induced subgraph", graph="random_induced_subgraph")
+
+    bandit_glimpse(1000, 10, exp, 0.1, same_queries=True, bandit="exp3")
+

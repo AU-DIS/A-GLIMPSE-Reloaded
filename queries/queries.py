@@ -15,11 +15,11 @@ class Queries(object):
             adversarial_degree * kg.number_of_entities)
 
         self.initial_entities = np.random.choice(
-            list(self.kg.triples_.keys()), number_to_sample)
+            list(self.kg.triples.keys()), number_to_sample)
 
         self.has_yielded_set_ = set()
         self.internal_entities_ = self.generate_queries(
-            1000 * 10)
+            1000 * 10) 
 
         self.iteration_count_ = 1
 
@@ -72,10 +72,10 @@ class Queries(object):
 
         for _ in range(breadth):
             for e1 in entities:
-                if e1 in self.kg.triples_.keys():
-                    for r in self.kg.triples_[e1]:
+                if e1 in self.kg.triples.keys():
+                    for r in self.kg.triples[e1]:
                         entities = np.append(
-                            entities, list(self.kg.triples_[e1][r]))
+                            entities, list(self.kg.triples[e1][r]))
 
             #seen_entities = seen_entities.union(current_entities)
         return np.array(entities)

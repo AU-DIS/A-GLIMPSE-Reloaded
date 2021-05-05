@@ -19,7 +19,7 @@ class Online_GLIMPSE(object):
         # Return them
         self.KG = kg
         self.K = K
-        self.number_of_triples = kg.number_of_triples()
+        self.number_of_triples = kg.number_of_triples
 
         #self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
         if bandit == "exp3m":
@@ -50,21 +50,20 @@ class Online_GLIMPSE(object):
         triple_choices = []
         for triple_index in self.choices:
             (e1_index, r_index,
-             e2_index) = self.KG.index_to_triple[triple_index]
+             e2_index) = self.KG.id_to_triple[triple_index]
             triple_choices.append(
-                (self.KG.entity_to_id[e1_index], self.KG.id_to_relationship[
-                    r_index], self.KG.entity_to_id[e2_index]
+                (self.KG.id_to_entity[e1_index], self.KG.id_to_relationship[
+                    r_index], self.KG.id_to_entity[e2_index]
                  ))
         return triple_choices
 
     def choose_entity_triples(self, entity_indices):
         triples = []
         for i in entity_indices:
-            e1 = self.KG.entities_list_[i]
-            for r in self.KG[e1]:
-                for e2 in self.KG[e1][r]:
+            for r in self.KG[i]:
+                for e2 in self.KG[i][r]:
                     if len(triples) < self.K:
-                        triples.append((e1, r, e2))
+                        triples.append((i, r, e2))
                     else:
                         return triples
         return triples

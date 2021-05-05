@@ -13,7 +13,7 @@ import logging
 class exp3_efficient_bandit(object):
     def __init__(self, kg, model_path=None, initial_entities=None, gamma=0.07):
         reload(heap)
-        self.number_of_triples = kg.number_of_triples_
+        self.number_of_triples = kg.number_of_triples
         # np.random.uniform(0.01, 1, size=number_of_triples)
         self.reward_min = 0
         self.reward_max = 1
@@ -28,11 +28,11 @@ class exp3_efficient_bandit(object):
         elif initial_entities is not None:
             priviliged_triples = set()
             for entity in initial_entities:
-                if entity in kg.triples_.keys():
-                    for r in kg.triples_[entity]:
-                        for e2 in kg.triples_[entity][r]:
+                if entity in kg.triples.keys():
+                    for r in kg.triples[entity]:
+                        for e2 in kg.triples[entity][r]:
                             priviliged_triples.add(
-                                kg.triple_ids[entity][r][e2])
+                                kg.triple_to_id[entity][r][e2])
 
             priviliged_weight = 1/len(priviliged_triples)
             self.weights = np.full(self.number_of_triples, (1 - priviliged_weight) /
@@ -110,11 +110,11 @@ class exp3_efficient_bandit(object):
         regrets = []
 
         for (e1, r, e2) in summary:
-            e1 = self.kg.entities_[e1]
-            e2 = self.kg.entities_[e2]
-            r = self.kg.relationships_[r]
+            e1 = self.kg.entity_to_id[e1]
+            e2 = self.kg.entity_to_id[e2]
+            r = self.kg.relationship_to_id[r]
 
-            choice_index = self.kg.triple_ids[e1][r][e2]
+            choice_index = self.kg.triple_to_id[(e1, r, e2)]
             reward = 0
             if e1 in queries:
                 reward = 0.5

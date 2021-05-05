@@ -1,15 +1,18 @@
 from human_id import generate_id
 from queries.queries import Queries
-from glimpse.src.experiment_base import DBPedia
+from glimpse.src.experiment_base import DBPedia, load_kg
 import os
 import time
 
 
 class Experiment(object):
-    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01):
+    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None):
         self.id = generate_id()
-        self.kg_ = DBPedia('dbpedia39')
-        self.kg_.load()
+        if graph is None:
+            self.kg_ = DBPedia('dbpedia39')
+            self.kg_.load()
+        else:
+            self.kg_ = load_kg(graph)
         self.type_tring = type_string
         self.Q_ = Queries(self.kg_, adversarial_degree=adversarial_degree)
         self.path_ = f"experiments_results/{self.id}"

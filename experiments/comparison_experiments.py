@@ -153,6 +153,6 @@ def glimpse_summary_to_list_of_entities(summary):
 def bandit_glimpse_summary_to_list_of_entities(summary, kg):
     res = set()
     for e1, _, e2 in summary.triples():
-        res.add(kg.entities_[e1])
-        res.add(kg.entities_[e2])
+        res.add(kg.entity_to_id[e1])
+        res.add(kg.entity_to_id[e2])
     return res

@@ -37,30 +37,18 @@ class KnowledgeGraph(object):
     def __init__(self):
         """A KG is a set of entities E, a set of relationships R,
         and a set of triples E x R x E."""
-        self.number_of_entities = 0
-        self.entities_ = {}
-
-        self.relationships_ = {}
-        self.triples_ = {}
-        self.number_of_triples_ = -1
-
-        self.triple_ids = {}
-        self.entity_to_id = {}
-        self.index_to_triple = {}
-        self.no_relationsships = 0
-
-        # Map entities to numeric IDs
-        self.eid_ = 0
-        self.entity_id_ = {}
-        self.id_entity_ = {}
-
-        # Map relationships to numeric IDs
-        self.rid_ = 0
+        self.number_of_relationships = -1
+        self.relationship_to_id = {}
         self.id_to_relationship = {}
 
-        self.id_to_entities = []
+        self.number_of_entities = -1
+        self.entity_to_id = {}
+        self.id_to_entity = {}
 
-        self.name_ = None
+        self.number_of_triples = -1
+        self.triples = {}
+        self.id_to_triple = {}
+        self.triple_to_id = {}
 
     def name(self):
         return self.name_
@@ -69,13 +57,13 @@ class KnowledgeGraph(object):
         """
         :return entities: all entities in the KG
         """
-        return self.entities_.keys()
+        return self.id_to_entity.keys()
 
     def relationships(self):
         """
         :return relationships: all relations in the KG
         """
-        return self.relationships_.keys()
+        return self.id_to_relationship.keys()
 
     def triples(self):
         """
@@ -84,56 +72,56 @@ class KnowledgeGraph(object):
         Note that this method is linear in the number of triples
         in the KG because it has to create a flat set of triples.
         """
-        for e1 in self.triples_:
-            for r in self.triples_[e1]:
-                for e2 in self.triples_[e1][r]:
+        for e1 in self.triples:
+            for r in self.triples[e1]:
+                for e2 in self.triples[e1][r]:
                     yield (e1, r, e2)
 
     def number_of_entities(self):
         """
         :return n_entities: number of entities in the KG
         """
-        return len(self.entities_.keys())
+        return self.number_of_entities
 
     def number_of_relationships(self):
         """
         :return n_relations: number of relations in the KG
         """
-        return len(self.relationships_.keys())
+        return self.number_of_relationships
 
     def number_of_triples(self):
         """
         :return n_triples: number of triples in the KG
         """
-        return self.number_of_triples_
+        return self.number_of_triples
 
     def has_entity(self, entity):
         """
         :param entity: str
         :return has_entity: True if KG contains this entity
         """
-        return entity in self.entities_.keys()
+        return entity in self.entity_to_id
 
     def has_relationship(self, relationship):
         """
         :param relationship: str
         :return has_relationship: True if KG contains this relationship
         """
-        return relationship in self.relationships_.keys()
+        return relationship in self.id_to_relationship
 
     def __getitem__(self, entity):
         """
         :param entity: str
         :return d: dict of set of {relation : entities}
         """
-        return self.triples_[entity]
+        return self.triples[entity]
 
     def __contains__(self, entity):
         """
         :param entity: str
         :return has_entity: True if KG contains this head entity
         """
-        return entity in self.triples_.keys()
+        return entity in self.triples
 
     def has_triple(self, triple):
         """
@@ -141,57 +129,48 @@ class KnowledgeGraph(object):
         :return has_triple: True if KG contains this triple
         """
         e1, r, e2 = triple
-        return e1 in self.entities_.keys() and e2 in self.entities_.keys() and r in self.relationships_.keys()
+        if e1 in self.entity_to_id and e2 in self.entity_to_id and r in self.relationship_to_id:
+            e1_index = self.entity_to_id[e1]
+            r_index = self.relationship_to_id[r]
+            e2_index = self.entity_to_id[e2]
+            return e1_index in self.triples and r_index in self.triples[e1_index] and e2_index == self.triples[e1_index][r_index]
+        else:
+            return False
 
     def add_triple(self, triple):
-        """
-        :param triple: (e1, r, e2) triple
-        """
-
         e1, r, e2 = triple
         if not self.has_triple(triple):
-            self.number_of_triples_ += 1
+            self.number_of_triples += 1
+
             # Record new relationship
-            if r not in self.relationships_.keys():
-                self.relationships_[r] = self.no_relationsships
-                self.id_to_relationship[self.no_relationsships] = r
-                self.rid_ += 1
-                self.no_relationsships = self.no_relationsships + 1
+            if r not in self.relationship_to_id:
+                self.number_of_relationships += 1
+                self.relationship_to_id[r] = self.number_of_relationships
+                self.id_to_relationship[self.number_of_relationships] = r
 
             # Record new entities
-            for entity in (e1, e2):
-                if entity not in self.entities_.keys():
-                    self.entities_[entity] = self.number_of_entities
-                    self.entity_to_id[self.number_of_entities] = entity
-                    self.entity_id_[entity] = self.eid_
-                    self.id_entity_[self.eid_] = self.number_of_entities
-                    # self.entities_.add(entity)
-                    self.eid_ += 1
-                    self.number_of_entities = self.number_of_entities + 1
+            for entity in [e1, e2]:
+                if entity not in self.entity_to_id:
+                    self.number_of_entities += 1
+                    self.entity_to_id[entity] = self.number_of_entities
+                    self.id_to_entity[self.number_of_entities] = entity
 
-            r_index = self.relationships_[r]
-            e1_index = self.entities_[e1]
-            e2_index = self.entities_[e2]
-            if e1 not in self.triples_.keys():
-                self.triples_[e1_index] = {}
-            if r not in self.triples_[e1_index]:
-                self.triples_[e1_index][r_index] = set()
-            self.triples_[e1_index][r_index].add(e2_index)
+            r_index = self.relationship_to_id[r]
+            e1_index = self.entity_to_id[e1]
+            e2_index = self.entity_to_id[e2]
 
-            # Map triple to an ID
-            # Use the indices for maximum memory efficieny (At expensive of later time)
-            if e1_index not in self.triple_ids.keys():
-                self.triple_ids[e1_index] = {}
-                self.triple_ids[e1_index][r_index] = {
-                    e2_index: self.number_of_triples_}
-            elif r_index not in self.triple_ids[e1_index].keys():
-                self.triple_ids[e1_index][r_index] = {
-                    e2_index: self.number_of_triples_}
-            else:
-                self.triple_ids[e1_index][r_index][e2_index] = self.number_of_triples_
+            if e1_index not in self.triples:
+                self.triples[e1_index] = {}
 
-            self.index_to_triple[self.number_of_triples_] = (
+            if r_index not in self.triples[e1_index]:
+                self.triples[e1_index][r_index] = set()
+
+            self.triples[e1_index][r_index].add(e2_index)
+
+            self.id_to_triple[self.number_of_triples] = (
                 e1_index, r_index, e2_index)
+            self.triple_to_id[(e1_index, r_index, e2_index)
+                              ] = self.number_of_triples
 
     def entity_id(self, entity):
         """
@@ -508,7 +487,7 @@ class DBPedia(KnowledgeGraph):
                     triple = (e1, r, e2)
                     self.add_triple(triple)
 
-                    if self.number_of_triples() == head:
+                    if self.number_of_triples == head:
                         return
 
                 print("Loaded: " + str(f))
