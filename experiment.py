@@ -3,6 +3,10 @@ from queries.queries import Queries
 from glimpse.src.experiment_base import DBPedia, load_kg
 import os
 import time
+try:
+    import cPickle as pickle
+except ModuleNotFoundError:
+    import pickle
 
 
 class Experiment(object):
@@ -17,7 +21,7 @@ class Experiment(object):
         self.Q_ = Queries(self.kg_, adversarial_degree=adversarial_degree)
         self.path_ = f"experiments_results/{self.id}"
         self.write_buffers_ = {}
-        self.write_every_ = 1000
+        self.write_every_ = 1000**2
         self.files_ = {}
 
         # Write a new directory for all the results
@@ -36,7 +40,11 @@ class Experiment(object):
     def end_experiment(self, experiment_id):
         self.empty_write_buffer(experiment_id)
         self.Q_.reset()
-        pass
+        with open(f"{self.path_}/information.txt", 'a') as f:
+            f.write(f"Experiment {experiment_id} ended at {time.time()}\n")
+
+        with open(f"{self.path_}/experiment_picked", 'wb') as f:
+            pickle.dump(self, f, -1)
 
     def create_experiment(self, list_of_properties, file_annotation, comment):
         experiment_id = generate_id()

@@ -1,12 +1,15 @@
+from subgraphs import random_induced_subgraph
 from experiments.comparison_experiments import bandit_glimpse, recompute_glimpse, run_static_glimpse
 import os
 from time import sleep
-from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, load_kg
+from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, load_kg, save_kg
 from glimpse.src.query import generate_query
 import repl_assistant as repl
 import numpy as np
 from multiprocessing import Process
 import experiment
+from subgraphs import random_induced_subgraph
+from theoretical.exp3_subgraph import plot_combined_theoretical
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -98,12 +101,14 @@ def exp_longrun():
 
     bandit_glimpse(10000, 10800, exp, 0.1, "exp3", same_queries=True)
 
+
 def exp3m_non_adversarial():
     exp = experiment.Experiment(
         comment="exp3m non adversarial queries",
         adversarial_degree=0.00001)
 
     bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
+
 
 def exp3_non_adversarial():
     exp = experiment.Experiment(
@@ -113,14 +118,62 @@ def exp3_non_adversarial():
     bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
 
 
+def run_bandits_on_subgraph(subgraph, edge_budget):
+    proportion = 0.01
+    k = proportion * edge_budget
+
+    rounds = [int((i * 100 * edge_budget)/(proportion * edge_budget))
+              for i in range(1, 5)]
+
+    processes = []
+    exps = []
+    for round in rounds:
+        exp = experiment.Experiment(
+            comment=f"Test of random induced subgraph with triples: {edge_budget} on graph {subgraph} with rounds {round}", graph=subgraph)
+        p = Process(target=bandit_glimpse, args=(
+            k, round, exp, 0.07, "exp3", True,))
+        exps.append(exp)
+        processes.append(p)
+        p.start()
+
+    for p in processes:
+        p.join()
+
+    filenames = []
+    for exp in exps:
+        for expname in exp.files_.keys():
+            filenames.append(exp.files_[expname])
+
+    labels = {filename: round for filename, round in zip(filenames, round)}
+    plot_combined_theoretical(
+        f"experiments_results/{edge_budget}", filenames, labels)
+
+
+def run_complete_banditry():
+    kg = DBPedia('dbpedia39')
+    kg.load()
+    save_kg("main_graph")
+    del kg
+
+    subgraphs = ["10pow6_edges", "10pow5_edges",
+                 "10pow4_edges", "10pow3_edges"]
+    edge_budgets = [10**6, 10**5, 10**4, 10**3]
+
+    processes = []
+    for subgraph, budget in zip(subgraphs, edge_budgets):
+        p = Process(target=random_induced_subgraph,
+                    args=("main_graph", subgraph, 0, budget,))
+        processes.append(p)
+        p.start()
+
+    for p in processes:
+        p.join()
+
+    for subgraph, edge_budget in zip(subgraphs, edge_budgets):
+        p = Process(target=run_bandits_on_subgraph,
+                    args=(subgraph, edge_budget))
+        p.start()
+
+
 if __name__ == "__main__":
-    #from multiprocessing import Process
-    #p1 = Process(target=exp3m_non_adversarial)
-    #p2 = Process(target=exp3_non_adversarial)
-
-    #p1.start()
-    #p2.start()
-    exp = experiment.Experiment(comment="Test of random induced subgraph", graph="random_induced_subgraph")
-
-    bandit_glimpse(1000, 10, exp, 0.1, same_queries=True, bandit="exp3")
-
+    run_complete_banditry()

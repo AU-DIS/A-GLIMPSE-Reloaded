@@ -2,15 +2,15 @@ from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, save_
 import random
 import numpy as np
 
-main_graph = "ordinarykg"
-
-kg = load_kg(main_graph)
-
-vertex_budget = int(1.4 * 10**5)
-edge_budget = int(10**6)
 
 
-def random_induced_subgraph(kg):
+#vertex_budget = int(1.4 * 10**5)
+#edge_budget = int(10**6)
+
+
+def random_induced_subgraph(input_graph, output_graph, vertex_budget, edge_budget):
+    kg = load_kg(input_graph)
+
     triples = random.sample(kg.id_to_triple.keys(), edge_budget)
     triples = [kg.id_to_triple[triple] for triple in triples]
 
@@ -23,6 +23,5 @@ def random_induced_subgraph(kg):
     for triple in triples_unindixed:
         kg.add_triple(triple)
 
-    save_kg(kg, "random_induced_subgraph")
+    save_kg(kg, output_graph)
 
-random_induced_subgraph(kg)
