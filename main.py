@@ -152,7 +152,7 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
 def run_complete_banditry():
     kg = DBPedia('dbpedia39')
     kg.load()
-    save_kg("main_graph")
+    save_kg(kg, "main_graph")
     del kg
 
     subgraphs = ["10pow6_edges", "10pow5_edges",
