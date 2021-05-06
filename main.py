@@ -144,7 +144,7 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
         for expname in exp.files_.keys():
             filenames.append(exp.files_[expname])
 
-    labels = {filename: round for filename, round in zip(filenames, round)}
+    labels = {filename: round for filename, round in zip(filenames, rounds)}
     plot_combined_theoretical(
         f"experiments_results/{edge_budget}", filenames, labels)
 
