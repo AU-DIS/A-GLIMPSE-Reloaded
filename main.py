@@ -149,6 +149,45 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
         f"experiments_results/{edge_budget}", filenames, labels)
 
 
+def find_regret_file(dir):
+    for f in os.listdir(dir):
+        if "regret" in f:
+            return f
+
+
+def extract_number_of_rounds(filename):
+    with open(filename, 'r') as f:
+        l = f.readline()
+        return l.strip('#')
+
+
+def plot_bandit_run(size, files):
+    files = [f"experiments_results/{f}" for f in files]
+
+    filenames = [f"{dir}/{find_regret_file(dir)}" for dir in files]
+    labels = {filename: extract_number_of_rounds(
+        filename) for filename in filenames}
+
+    plot_combined_theoretical(f"experiments_results/{size}", filenames, labels)
+
+
+def plot_bandit_runs():
+    results = [
+        (1000000, ["be-dark-group-car", "happen-young-air-information",
+                   "show-able-friend-moment", "believe-old-ready-body"]),
+        (10000, ["cut-economic-white-guy", "tell-certain-religious-book",
+         "believe-private-open-time", "run-full-morning-education"]),
+        (1000, ["happen-left-hard-minute", "give-stop-clear-change",
+         "put-certain-girl-water", "give-new-national-name"]),
+        (100000, ["spend-religious-year-education", "win-personal-issue-program",
+         "consider-fine-president-state", "serve-white-girl-people"])
+    ]
+
+    for (size, files) in results:
+        p = Process(target=plot_bandit_run, args=(size, files))
+        p.start()
+
+
 def run_complete_banditry():
     kg = DBPedia('dbpedia39')
     kg.load()
