@@ -8,15 +8,15 @@ from multiprocessing import Process
 
 # Filthy code to be cleaned up latur
 def plot_combined_theoretical(output_path, filenames, no_rounds):
+    ys = []
+    markers = ['-', '--', '-.', ':']
+    ax = None
+    labels = []
+    i = 0
+
     for filename in filenames:
         sizes = [(1 * 1.1)**i for i in range(0, 30)][::-1]
     # markers = ['.', ',', 'o', 'v', '<', '>']
-        markers = ['-', '--', '-.', ':']
-        ax = None
-        labels = []
-        i = 0
-        ys = []
-
         df = pd.read_csv(filename, skiprows=[0])
         if 'k' not in df.columns:
             df['k'] = 1
@@ -39,7 +39,11 @@ def plot_combined_theoretical(output_path, filenames, no_rounds):
         ax.plot(y, alpha=0.5,
                 linestyle=markers[i % len(markers)], markersize=5)
 
-    ax.set_ylim([0, len(ys[0])])
+    max_ar = 0
+    for ar in ys:
+        max_ar = max(max_ar, len(ar))
+
+    ax.set_ylim([0, max_ar]) 
     ax.legend(labels)
     plt.tight_layout()
     plt.savefig(f"{output_path}.png")

@@ -158,7 +158,7 @@ def find_regret_file(dir):
 def extract_number_of_rounds(filename):
     with open(filename, 'r') as f:
         l = f.readline()
-        return l.strip('#')
+        return l.strip('#').strip('\n')
 
 
 def plot_bandit_run(size, files):
@@ -215,4 +215,4 @@ def run_complete_banditry():
 
 
 if __name__ == "__main__":
-    run_complete_banditry()
+    plot_bandit_runs()
