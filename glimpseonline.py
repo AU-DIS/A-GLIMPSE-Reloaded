@@ -69,4 +69,4 @@ class Online_GLIMPSE(object):
         return triples
 
     def update_queries(self, queries):
-        return self.bandit.create_rewards(queries, self.choices)
+        return self.bandit.create_binary_rewards(queries, self.choices)

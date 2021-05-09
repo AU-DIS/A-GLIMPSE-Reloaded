@@ -124,6 +124,25 @@ class exp3_efficient_bandit(object):
             regrets.append(self.reward_max-reward)
         return regrets
 
+    def create_binary_rewards(self, queries, summary):
+        queries_set = set()
+        for q in queries:
+            queries_set.add(q)
+        queries = queries_set
+
+        regrets = []
+
+        for (e1, r, e2) in summary:
+            e1 = self.kg.entity_to_id[e1]
+            e2 = self.kg.entity_to_id[e2]
+            r = self.kg.relationship_to_id[r]
+
+            choice_index = self.kg.triple_to_id[(e1, r, e2)]
+            reward = 1 if (e1 in queries or e2 in queries) else 0
+            self.give_reward(reward, choice_index)
+            regrets.append(self.reward_max-reward)
+        return regrets
+
     def create_rewards_triples(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)
         rewards = []

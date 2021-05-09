@@ -146,7 +146,7 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
 
     labels = {filename: round for filename, round in zip(filenames, rounds)}
     plot_combined_theoretical(
-        f"experiments_results/{edge_budget}", filenames, labels)
+        f"experiments_results/binary_{edge_budget}", filenames, labels)
 
 
 def find_regret_file(dir):
@@ -168,7 +168,8 @@ def plot_bandit_run(size, files):
     labels = {filename: extract_number_of_rounds(
         filename) for filename in filenames}
 
-    plot_combined_theoretical(f"experiments_results/{size}", filenames, labels)
+    plot_combined_theoretical(
+        f"experiments_results/{size}", filenames, labels)
 
 
 def plot_bandit_runs():
@@ -189,10 +190,10 @@ def plot_bandit_runs():
 
 
 def run_complete_banditry():
-    kg = DBPedia('dbpedia39')
-    kg.load()
-    save_kg(kg, "main_graph")
-    del kg
+    #kg = DBPedia('dbpedia39')
+    # kg.load()
+    #save_kg(kg, "main_graph")
+    #del kg
 
     subgraphs = ["10pow6_edges", "10pow5_edges",
                  "10pow4_edges", "10pow3_edges"]
@@ -215,4 +216,4 @@ def run_complete_banditry():
 
 
 if __name__ == "__main__":
-    plot_bandit_runs()
+    run_complete_banditry()
