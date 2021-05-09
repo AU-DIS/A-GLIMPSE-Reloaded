@@ -2,7 +2,6 @@ from os import write
 from glimpse.src import glimpse
 import util as util
 from glimpse.src import user
-import topics as t
 import numpy as np
 import logging
 from glimpse.src.glimpse import GLIMPSE, Summary

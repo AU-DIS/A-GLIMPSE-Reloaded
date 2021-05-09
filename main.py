@@ -131,7 +131,7 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
         exp = experiment.Experiment(
             comment=f"Test of random induced subgraph with triples: {edge_budget} on graph {subgraph} with rounds {round}", graph=subgraph)
         p = Process(target=bandit_glimpse, args=(
-            k, round, exp, 0.07, "exp3", True,))
+            k, round, exp, 0.07, "exp3", False,))
         exps.append(exp)
         processes.append(p)
         p.start()
@@ -146,7 +146,7 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
 
     labels = {filename: round for filename, round in zip(filenames, rounds)}
     plot_combined_theoretical(
-        f"experiments_results/binary_{edge_budget}", filenames, labels)
+        f"experiments_results/binary_new_queries_{edge_budget}", filenames, labels)
 
 
 def find_regret_file(dir):
@@ -199,15 +199,15 @@ def run_complete_banditry():
                  "10pow4_edges", "10pow3_edges"]
     edge_budgets = [10**6, 10**5, 10**4, 10**3]
 
-    processes = []
-    for subgraph, budget in zip(subgraphs, edge_budgets):
-        p = Process(target=random_induced_subgraph,
-                    args=("main_graph", subgraph, 0, budget,))
-        processes.append(p)
-        p.start()
+    #processes = []
+    # for subgraph, budget in zip(subgraphs, edge_budgets):
+    #    p = Process(target=random_induced_subgraph,
+    #                args=("main_graph", subgraph, 0, budget,))
+    #    processes.append(p)
+    #    p.start()
 
-    for p in processes:
-        p.join()
+    # for p in processes:
+    #    p.join()
 
     for subgraph, edge_budget in zip(subgraphs, edge_budgets):
         p = Process(target=run_bandits_on_subgraph,
