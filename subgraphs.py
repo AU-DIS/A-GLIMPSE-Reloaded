@@ -3,11 +3,6 @@ import random
 import numpy as np
 
 
-
-#vertex_budget = int(1.4 * 10**5)
-#edge_budget = int(10**6)
-
-
 def random_induced_subgraph(input_graph, output_graph, vertex_budget, edge_budget):
     kg = load_kg(input_graph)
 

@@ -1,5 +1,5 @@
 from subgraphs import random_induced_subgraph
-from experiments.comparison_experiments import bandit_glimpse, recompute_glimpse, run_static_glimpse
+from experiments.subgraph_experiments import subgraph_experiments
 import os
 from time import sleep
 from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, load_kg, save_kg
@@ -118,7 +118,7 @@ def exp3_non_adversarial():
     bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
 
 
-def run_bandits_on_subgraph(subgraph, edge_budget):
+def run_bandits_on_subgraph(subgraph, edge_budget, experiment_name):
     proportion = 0.01
     k = proportion * edge_budget
 
@@ -143,6 +143,10 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
     for exp in exps:
         for expname in exp.files_.keys():
             filenames.append(exp.files_[expname])
+
+    with open(f"experiments_results/{experiment_name}.txt", "w+") as f:
+
+        f.writelines(filenames)
 
     labels = {filename: round for filename, round in zip(filenames, rounds)}
     plot_combined_theoretical(
@@ -172,7 +176,7 @@ def plot_bandit_run(size, files):
         f"experiments_results/{size}", filenames, labels)
 
 
-def plot_bandit_runs():
+def plot_initial_bandit_runs():
     results = [
         (1000000, ["be-dark-group-car", "happen-young-air-information",
                    "show-able-friend-moment", "believe-old-ready-body"]),
@@ -189,31 +193,5 @@ def plot_bandit_runs():
         p.start()
 
 
-def run_complete_banditry():
-    #kg = DBPedia('dbpedia39')
-    # kg.load()
-    #save_kg(kg, "main_graph")
-    #del kg
-
-    subgraphs = ["10pow6_edges", "10pow5_edges",
-                 "10pow4_edges", "10pow3_edges"]
-    edge_budgets = [10**6, 10**5, 10**4, 10**3]
-
-    #processes = []
-    # for subgraph, budget in zip(subgraphs, edge_budgets):
-    #    p = Process(target=random_induced_subgraph,
-    #                args=("main_graph", subgraph, 0, budget,))
-    #    processes.append(p)
-    #    p.start()
-
-    # for p in processes:
-    #    p.join()
-
-    for subgraph, edge_budget in zip(subgraphs, edge_budgets):
-        p = Process(target=run_bandits_on_subgraph,
-                    args=(subgraph, edge_budget))
-        p.start()
-
-
 if __name__ == "__main__":
-    run_complete_banditry()
+    subgraph_experiments()

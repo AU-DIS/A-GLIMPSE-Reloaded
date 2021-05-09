@@ -10,16 +10,14 @@ import bandits.efficient_bandits.exp3 as exp3
 
 
 class Online_GLIMPSE(object):
-    def __init__(self, kg, K, model_path=None, initial_entities=None, gamma=0.07, bandit="exp3m"):
+    def __init__(self, kg, K, model_path=None, initial_entities=None, gamma=0.07, bandit="exp3m", reward_function="kg"):
         garbage.collect()
         reload(exp3m)
         reload(exp3)
-        # //TODO: I hate having to store this reference for memory overhead reasons
-        # But the triples function is not deterministic due to KGs use of set to
-        # Return them
         self.KG = kg
         self.K = K
         self.number_of_triples = kg.number_of_triples
+        self.reward_function = reward_function
 
         #self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
         if bandit == "exp3m":
@@ -69,4 +67,7 @@ class Online_GLIMPSE(object):
         return triples
 
     def update_queries(self, queries):
-        return self.bandit.create_binary_rewards(queries, self.choices)
+        if self.reward_function == "kg":
+            return self.bandit.create_rewards(queries, self.choices)
+        else:
+            return self.bandit.create_binary_rewards(queries, self.choices)

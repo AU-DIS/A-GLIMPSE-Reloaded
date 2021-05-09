@@ -1,4 +1,5 @@
 from human_id import generate_id
+import human_id
 from queries.queries import Queries
 from glimpse.src.experiment_base import DBPedia, load_kg
 import os
@@ -10,8 +11,11 @@ except ModuleNotFoundError:
 
 
 class Experiment(object):
-    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None):
-        self.id = generate_id()
+    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None):
+        if dir is None:
+            self.id = generate_id()
+        else:
+            self.id = dir
         if graph is None:
             self.kg_ = DBPedia('dbpedia39')
             self.kg_.load()
@@ -23,6 +27,7 @@ class Experiment(object):
         self.write_buffers_ = {}
         self.write_every_ = 1000**2
         self.files_ = {}
+        self.name = name
 
         # Write a new directory for all the results
         os.mkdir(self.path_)
@@ -32,6 +37,12 @@ class Experiment(object):
                 Type: {type_string}
                 Comment: {comment}
             """)
+
+    def reset_name(self, new_name=None):
+        if new_name is None:
+            self.name = generate_id()
+        else:
+            self.name = new_name
 
     def begin_experiment(self, experiment_id):
         self.Q_.reset()
@@ -47,9 +58,12 @@ class Experiment(object):
             pickle.dump(self, f, -1)
 
     def create_experiment(self, list_of_properties, file_annotation, comment):
-        experiment_id = generate_id()
+        if self.name is None:
+            experiment_id = generate_id()
+        else:
+            experiment_id = self.name
 
-        file_name = f"{self.path_}/{file_annotation}_{experiment_id}.csv"
+        file_name = f"{self.path_}/{file_annotation}.csv"
 
         with open(file_name, 'w+') as f:
             f.write(f"#{comment}\n")
@@ -57,7 +71,6 @@ class Experiment(object):
 
         self.write_buffers_[experiment_id] = []
         self.files_[experiment_id] = file_name
-
         return experiment_id
 
     def empty_write_buffer(self, experiment_id):

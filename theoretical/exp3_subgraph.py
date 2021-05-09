@@ -13,7 +13,6 @@ def plot_combined_theoretical(output_path, filenames, no_rounds):
     ax = None
     labels = []
     i = 0
-
     for filename in filenames:
         sizes = [(1 * 1.1)**i for i in range(0, 30)][::-1]
     # markers = ['.', ',', 'o', 'v', '<', '>']
@@ -21,7 +20,7 @@ def plot_combined_theoretical(output_path, filenames, no_rounds):
         if 'k' not in df.columns:
             df['k'] = 1
         df[f"cumsum"] = df["regret"].cumsum()
-        labels.append(f"No_rounds = {no_rounds[filename]}")
+        labels.append(f"Number of rounds: {no_rounds[filename]}")
         ys.append(df["cumsum"])
         del df
 
@@ -41,9 +40,9 @@ def plot_combined_theoretical(output_path, filenames, no_rounds):
 
     max_ar = 0
     for ar in ys:
-        max_ar = max(max_ar, len(ar))
+        max_ar = max(len(ar), max_ar)
 
-    ax.set_ylim([0, max_ar]) 
+    ax.set_ylim([0, max_ar])
     ax.legend(labels)
     plt.tight_layout()
     plt.savefig(f"{output_path}.png")
