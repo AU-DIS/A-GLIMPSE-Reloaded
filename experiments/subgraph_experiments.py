@@ -42,7 +42,7 @@ def run_bandits_on_subgraph(subgraph, edge_budget):
     p_binary.join()
     p_binary.join()
 
-    plot_names = [f"ordinary_{rounds}", f"binary_{rounds}"]
+    plot_names = [f"ordinary_{edge_budget}", f"binary_{edge_budget}"]
     labels = {filename: rounds for filename in filenames}
     for filename, plot_name in zip(filenames, plot_names):
         plot_combined_theoretical(
@@ -75,5 +75,5 @@ def subgraph_experiments(create_subgraphs=False, existing_graph="ordinarykg"):
 
     for subgraph, edge_budget in zip(subgraphs, edge_budgets):
         p = Process(target=run_bandits_on_subgraph,
-                    args=(subgraph, edge_budget, ""))
+                    args=(subgraph, edge_budget))
         p.start()

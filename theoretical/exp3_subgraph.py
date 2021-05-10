@@ -42,7 +42,7 @@ def plot_combined_theoretical(output_path, filenames, no_rounds):
     for ar in ys:
         max_ar = max(len(ar), max_ar)
 
-    ax.set_ylim([0, max_ar])
+    ax.set_ylim([0, len(ys[0])])
     ax.legend(labels)
     plt.tight_layout()
     plt.savefig(f"{output_path}.png")
