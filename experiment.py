@@ -1,3 +1,4 @@
+from os import path
 from human_id import generate_id
 import human_id
 from queries.queries import Queries
@@ -11,7 +12,7 @@ except ModuleNotFoundError:
 
 
 class Experiment(object):
-    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None):
+    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None, batch_size=1000):
         if dir is None:
             self.id = generate_id()
         else:
@@ -22,7 +23,8 @@ class Experiment(object):
         else:
             self.kg_ = load_kg(graph)
         self.type_tring = type_string
-        self.Q_ = Queries(self.kg_, adversarial_degree=adversarial_degree)
+        self.Q_ = Queries(
+            self.kg_, adversarial_degree=adversarial_degree, batch_size=batch_size)
         self.path_ = f"experiments_results/{self.id}"
         self.write_buffers_ = {}
         self.write_every_ = 1000**2
@@ -30,7 +32,8 @@ class Experiment(object):
         self.name = name
 
         # Write a new directory for all the results
-        os.mkdir(self.path_)
+        if not path.exists(self.path_):
+            os.mkdir(self.path_)
         with open(f"{self.path_}/information.txt", 'w+') as f:
             f.write(f"""
                 Time of initialisation: {time.localtime(time.time())}

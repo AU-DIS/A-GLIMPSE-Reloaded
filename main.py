@@ -10,6 +10,7 @@ from multiprocessing import Process
 import experiment
 from subgraphs import random_induced_subgraph
 from theoretical.exp3_subgraph import plot_combined_theoretical
+from experiments.timed_bandit_trainer import run_on_graph
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -194,4 +195,13 @@ def plot_initial_bandit_runs():
 
 
 if __name__ == "__main__":
-    subgraph_experiments()
+    graph = "10pow3_edges"
+    reward_functions = ["kg", "binary"]
+    batch_size = 5000
+    deltas = [10, 100, 1000, 7200, 18000, 36000]
+
+    for reward_function in reward_functions:
+        for delta in deltas:
+            p = Process(target=run_on_graph, args=(graph, f"timed_run_{graph}",
+                                                   delta, 5000, reward_function, 0.01))
+            p.start()
