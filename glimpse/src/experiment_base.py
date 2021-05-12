@@ -53,6 +53,70 @@ class KnowledgeGraph(object):
     def name(self):
         return self.name_
 
+    def compress_graph_indices(self):
+        current_entity = 0
+        current_relationship = 0
+        current_triple = 0
+
+        entity_to_new = {}
+        relationship_to_new = {}
+        triple_to_new = {}
+
+        # create ids
+
+        for entity in self.id_to_entity:
+            entity_to_new[entity] = current_entity
+            current_entity += 1
+
+        for relationship in self.id_to_relationship:
+            relationship_to_new[relationship] = current_relationship
+            current_relationship += 1
+
+        for triple in self.id_to_triple:
+            triple_to_new[triple] = current_triple
+            current_triple += 1
+
+        self.number_of_triples = current_triple
+        self.number_of_entities = current_entity
+        self.number_of_relationships = current_relationship
+
+        # Fix maps
+        map = {}
+        for relationship in self.relationship_to_id:
+            map[relationship] = relationship_to_new[self.relationship_to_id[relationship]]
+        self.relationship_to_id = map
+
+        map = {}
+        for relationship in self.id_to_relationship:
+            map[relationship_to_new[relationship]
+                ] = self.id_to_relationship[relationship]
+        self.id_to_relationship = map
+
+        for e in self.entity_to_id:
+            self.entity_to_id[e] = entity_to_new[self.entity_to_id[e]]
+        map = {}
+        for e in self.id_to_entity:
+            map[entity_to_new[e]] = self.id_to_entity[e]
+        self.id_to_entity = map
+
+        map = {}
+        for t in self.triple_to_id:
+            e1, r, e2 = t
+            e1 = entity_to_new[e1]
+            e2 = entity_to_new[e2]
+            r = relationship_to_new[r]
+            map[(e1, r, e2)] = triple_to_new[self.triple_to_id[t]]
+        self.triple_to_id = map
+
+        map = {}
+        for t in self.id_to_triple:
+            e1, r, e2 = self.id_to_triple[t]
+            e1 = entity_to_new[e1]
+            e2 = entity_to_new[e2]
+            r = relationship_to_new[r]
+            map[triple_to_new[t]] = (e1, r, e2)
+        self.id_to_triple = map
+
     def entities(self):
         """
         :return entities: all entities in the KG
@@ -184,24 +248,26 @@ class KnowledgeGraph(object):
         :param eid: entity integer ID
         :return entity: str label
         """
-        return self.id_entity_[eid]
+        return self.id_to_entity[eid]
 
     def csr_matrix(self):
         """
         :return A: scipy sparse CSR adjacency matrix
         """
         row, col, data = [], [], []
-        for e1 in self.triples_:
-            for r in self.triples_[e1]:
-                for e2 in self.triples_[e1][r]:
-                    row.append(e1)
-                    col.append(e2)
-                    data.append(1)
+        data = [0 for _ in range(self.number_of_entities)]
+        col = [e for e in range(self.number_of_entities)]
+        row = [e for e in range(self.number_of_entities)]
+        for e1 in self.triples:
+            for r in self.triples[e1]:
+                for _ in self.triples[e1][r]:
+                    data[e1] = 1
 
         n = self.number_of_entities
-        return csr_matrix(
+        m = csr_matrix(
             (np.array(data), (np.array(row), np.array(col))),
             shape=(n, n))
+        return m
 
     def transition_matrix(self):
         """
@@ -209,9 +275,9 @@ class KnowledgeGraph(object):
         """
         # Create the degree matrix
         row, col, data = [], [], []
-        for e1 in self.triples_:
-            for r in self.triples_[e1]:
-                for _ in self.triples_[e1][r]:
+        for e1 in self.triples:
+            for r in self.triples[e1]:
+                for _ in self.triples[e1][r]:
                     row.append(e1)
                     col.append(e1)
                     data.append(1)
@@ -253,10 +319,10 @@ class KnowledgeGraph(object):
         if rdf_query_logs:
             x, y = query_vector_rdf(self, query_log)
             y = y if include_relationship_prob else np.ones(
-                self.number_of_relationships())
+                self.number_of_relationships)
         else:
             x, y = query_vector(self, query_log), np.ones(
-                self.number_of_relationships())
+                self.number_of_relationships)
 
         M = self.transition_matrix()
         x = random_walk_with_restart(M, x, power=power)
@@ -266,9 +332,9 @@ class KnowledgeGraph(object):
             entity = self.id_entity(eid)
             self.entity_value_[entity] = np.log(val + 1)
 
-        for e1 in self.triples_:
-            for r in self.triples_[e1]:
-                for e2 in self.triples_[e1][r]:
+        for e1 in self.triples:
+            for r in self.triples[e1]:
+                for e2 in self.triples[e1][r]:
                     triple = (e1, r, e2)
                     # TODO not the same calculation as the paper (where is the relation)
                     self.triple_value_[triple] = np.log(

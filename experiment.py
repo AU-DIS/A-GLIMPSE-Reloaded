@@ -41,6 +41,9 @@ class Experiment(object):
                 Comment: {comment}
             """)
 
+    def update_graph(self, graph):
+        self.kg_ = load_kg(graph)
+
     def reset_name(self, new_name=None):
         if new_name is None:
             self.name = generate_id()

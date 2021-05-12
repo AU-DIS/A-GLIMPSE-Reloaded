@@ -17,6 +17,6 @@ def random_induced_subgraph(input_graph, output_graph, vertex_budget, edge_budge
     kg = DBPedia('dbpedia39')
     for triple in triples_unindixed:
         kg.add_triple(triple)
+    kg.compress_graph_indices()
 
     save_kg(kg, output_graph)
-

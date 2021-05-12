@@ -11,6 +11,7 @@ import experiment
 from subgraphs import random_induced_subgraph
 from theoretical.exp3_subgraph import plot_combined_theoretical
 from experiments.timed_bandit_trainer import run_on_graph
+import experiments.pretrained_bandit_versus_glimpse as pretrained
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -177,25 +178,8 @@ def plot_bandit_run(size, files):
         f"experiments_results/{size}", filenames, labels)
 
 
-def plot_initial_bandit_runs():
-    results = [
-        (1000000, ["be-dark-group-car", "happen-young-air-information",
-                   "show-able-friend-moment", "believe-old-ready-body"]),
-        (10000, ["cut-economic-white-guy", "tell-certain-religious-book",
-         "believe-private-open-time", "run-full-morning-education"]),
-        (1000, ["happen-left-hard-minute", "give-stop-clear-change",
-         "put-certain-girl-water", "give-new-national-name"]),
-        (100000, ["spend-religious-year-education", "win-personal-issue-program",
-         "consider-fine-president-state", "serve-white-girl-people"])
-    ]
-
-    for (size, files) in results:
-        p = Process(target=plot_bandit_run, args=(size, files))
-        p.start()
-
-
-if __name__ == "__main__":
-    graph = "10pow3_edges"
+def run_timed_training():
+    graph = "10pow6_edges"
     reward_functions = ["kg", "binary"]
     batch_size = 5000
     deltas = [10, 100, 1000, 7200, 18000, 36000]
@@ -205,3 +189,7 @@ if __name__ == "__main__":
             p = Process(target=run_on_graph, args=(graph, f"timed_run_{graph}",
                                                    delta, 5000, reward_function, 0.01))
             p.start()
+
+
+if __name__ == "__main__":
+    pretrained.run_static_experiment()

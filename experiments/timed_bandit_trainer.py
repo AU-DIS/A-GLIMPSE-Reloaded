@@ -8,15 +8,6 @@ import sys
 sys.path.append('..')
 
 
-# IngredientsZZZZ:
-# Gem i bestemte intervaller, navngiv banditterne det rigtige
-# Gem grafen (TJEK)
-# Gem experiment med prectictable navn
-# Override experiments navn'
-# Input tidsintervaller
-# Sæt en long boi exp3m i gang
-
-
 def run_on_graph(graph, experiment_name, delta, batch_size=1000, rf="kg", k_proportion=0.01):
     timed_bandit_dir = f"timed_bandits_{experiment_name}_{rf}_{delta}"
 
