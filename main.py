@@ -197,7 +197,7 @@ def run_pretrained_comparison():
     deltas = [10, 100, 1000, 7200, 18000, 36000]
     for reward_function in reward_functions:
         for delta in deltas:
-            experiment_dir = f"timed_bandits_test_regret_{reward_function}_{delta}"
+            experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
             p = Process(target=pretrained.run_static_experiment,
                         args=(experiment_dir, graph, 20, 0.01))
 
@@ -205,4 +205,4 @@ def run_pretrained_comparison():
 
 
 if __name__ == "__main__":
-    run_pretrained_comparison
+    run_pretrained_comparison()
