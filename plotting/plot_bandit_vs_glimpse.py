@@ -15,13 +15,13 @@ def plot_combined(output_path, filename):
     fig, ax = plt.subplots(1, 1, figsize=(8, 5))
     plt.grid(linestyle='--', linewidth=0.5)
 
-    ax.plot(df["bandit_accuracy"], alpha=0.5,
+    ax.plot(df[" bandit_total_hits"], alpha=0.5,
             linestyle=markers[i % len(markers)], markersize=5)
 
-    ax.plot(df["glimpse_accuracy"], alpha=0.5,
+    ax.plot(df[" glimpse_total_hits"], alpha=0.5,
             linestyle=markers[i % len(markers)], markersize=5)
 
-    ax.set_ylim([0, 1])
+#    ax.set_ylim([0, 1])
     ax.legend(["Bandit accuracy", "Glimpse accuracy"])
 
     plt.tight_layout()

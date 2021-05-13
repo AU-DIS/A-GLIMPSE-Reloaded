@@ -48,7 +48,7 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
         t2 = time.process_time()
         bandit_delta = t2 - t1
 
-    for i in range(number_of_rounds):
+    for i in range(1, number_of_rounds+1):
         if recompute_n is not None:
             if recompute_n % i == 0:
                 t1 = time.process_time()
@@ -58,7 +58,7 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
 
         # Compute accuracy
         all_q = exp.all_batches()
-        log = [i+1]
+        log = [i]
         log.extend(list(compute_accuracy(
             exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
         log.append(t2 - t1)
