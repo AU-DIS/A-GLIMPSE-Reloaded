@@ -32,7 +32,7 @@ def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds
     glimpse_online = g.Online_GLIMPSE(
         exp.kg(), k, bandit_path, bandit="exp3", reward_function="kg")
 
-    annotation = f"k{k}rounds{number_of_rounds}"
+    annotation = f"k{k}rounds{number_of_rounds}_2delta"
     comment = f"Bandit versus GLIMPSE k = {k} rounds = {number_of_rounds}"
 
     exp.experiment_id = "glimpse"
@@ -44,9 +44,9 @@ def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds
 
     exp.begin_experiment(experiment_id)
     q = exp.batch()
-    t1 = time.time()
+    t1 = time.process_time()
     glimpse_summary = GLIMPSE(exp.kg(), k, q)
-    t2 = time.time()
+    t2 = time.process_time()
     bandit_delta = t2 - t1
 
     # Bandit was trained on the first batch, so no need to pass it to it
@@ -64,9 +64,9 @@ def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
 
-        delta = time.time() + bandit_delta
+        delta = time.process_time() + (bandit_delta * 2)
         log.append(delta)
-        while time.time() < delta:
+        while time.process_time() < delta:
             glimpse_online.construct_summary()
             glimpse_online.update_queries(all_q)
 
