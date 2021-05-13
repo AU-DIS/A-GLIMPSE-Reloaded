@@ -12,6 +12,7 @@ from subgraphs import random_induced_subgraph
 from theoretical.exp3_subgraph import plot_combined_theoretical
 from experiments.timed_bandit_trainer import run_on_graph
 import experiments.pretrained_bandit_versus_glimpse as pretrained
+from plotting.plot_bandit_vs_glimpse import plot_combined
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -206,5 +207,23 @@ def run_pretrained_comparison():
                 p.start()
 
 
+def plot_all_pretrained_comparison():
+    graph = "10pow6_edges"
+    reward_functions = ["kg", "binary"]
+    deltas = [10, 100, 1000, 7200, 18000, 36000]
+    recompute_n = [1, 3, 4, 5]
+    filenames = ["k10000rounds20_2delta.csv", "k10000rounds20_onehalftime.csv", "k10000rounds20_onethirdtime.csv",
+                 "k10000rounds40_recompute_3.csv", "k10000rounds40_recompute_4.csv", "k10000rounds40_recompute_5.csv"]
+
+    for reward_function in reward_functions:
+        for delta in deltas:
+            for n in recompute_n:
+                for filename in filenames:
+                    filename = f"experiments_results/timed_bandits_timed_run_{graph}_{reward_function}_{delta}/{filename}"
+                    p = Process(target=plot_combined,
+                                args=(filename, filename))
+                    p.start()
+
+
 if __name__ == "__main__":
-    run_pretrained_comparison()
+    plot_all_pretrained_comparison()
