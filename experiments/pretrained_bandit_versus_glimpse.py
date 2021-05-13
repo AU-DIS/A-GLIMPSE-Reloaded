@@ -20,9 +20,7 @@ def load_experiment(exp_path):
         return pickle.load(f)
 
 
-# UDREGN HVOR LANG TID DET TAGER AT LAVE ET GLIMPSE SUMMARY
-# GIV EXP3 TID TIL AT TRÆNE PÅ NYE QUERIES PÅ SAMME MÆNGDE TID
-def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01):
+def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01, annotation="", recompute_n=None):
     data_dir = "experiments_results"
     bandit_path = f"{data_dir}/{experiment_dir}/bandit.npy"
 
@@ -32,7 +30,7 @@ def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds
     glimpse_online = g.Online_GLIMPSE(
         exp.kg(), k, bandit_path, bandit="exp3", reward_function="kg")
 
-    annotation = f"k{k}rounds{number_of_rounds}_2delta"
+    annotation = f"k{k}rounds{number_of_rounds}_{annotation}"
     comment = f"Bandit versus GLIMPSE k = {k} rounds = {number_of_rounds}"
 
     exp.experiment_id = "glimpse"
@@ -44,14 +42,20 @@ def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds
 
     exp.begin_experiment(experiment_id)
     q = exp.batch()
-    t1 = time.process_time()
-    glimpse_summary = GLIMPSE(exp.kg(), k, q)
-    t2 = time.process_time()
-    bandit_delta = t2 - t1
+    if recompute_n is None:
+        t1 = time.process_time()
+        glimpse_summary = GLIMPSE(exp.kg(), k, q)
+        t2 = time.process_time()
+        bandit_delta = t2 - t1
 
-    # Bandit was trained on the first batch, so no need to pass it to it
-    # //TODO: Give bandit delta time to iterate over the first batch to make it fair?
     for i in range(number_of_rounds):
+        if recompute_n is not None:
+            if recompute_n % i == 0:
+                t1 = time.process_time()
+                glimpse_summary = GLIMPSE(exp.kg(), k, q)
+                t2 = time.process_time()
+                bandit_delta = t2 - t1
+
         # Compute accuracy
         all_q = exp.all_batches()
         log = [i+1]
@@ -64,7 +68,7 @@ def run_static_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
 
-        delta = time.process_time() + (bandit_delta * 2)
+        delta = time.process_time() + bandit_delta
         log.append(delta)
         while time.process_time() < delta:
             glimpse_online.construct_summary()

@@ -195,13 +195,15 @@ def run_pretrained_comparison():
     graph = "10pow6_edges"
     reward_functions = ["kg", "binary"]
     deltas = [10, 100, 1000, 7200, 18000, 36000]
+    recompute_n = [1, 3, 4, 5]
     for reward_function in reward_functions:
         for delta in deltas:
-            experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
-            p = Process(target=pretrained.run_static_experiment,
-                        args=(experiment_dir, graph, 20, 0.01))
+            for n in recompute_n:
+                experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
+                p = Process(target=pretrained.run_compare_function_experiment,
+                            args=(experiment_dir, graph, 40, 0.01, f"recompute_{n}", n))
 
-            p.start()
+                p.start()
 
 
 if __name__ == "__main__":
