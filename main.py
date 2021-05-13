@@ -192,7 +192,7 @@ def run_timed_training():
             p.start()
 
 
-def run_pretrained_comparison():
+def run_pretrained_recompute_comparison():
     graph = "10pow6_edges"
     reward_functions = ["kg", "binary"]
     deltas = [10, 100, 1000, 7200, 18000, 36000]
@@ -205,6 +205,19 @@ def run_pretrained_comparison():
                             args=(experiment_dir, graph, 40, 0.01, f"recompute_{n}", n))
 
                 p.start()
+
+
+def run_pretrained_comparison():
+    graph = "10pow6_edges"
+    reward_functions = ["kg", "binary"]
+    deltas = [10, 100, 1000, 7200, 18000, 36000]
+    for reward_function in reward_functions:
+        for delta in deltas:
+            experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
+            p = Process(target=pretrained.run_compare_function_experiment,
+                        args=(experiment_dir, graph, 40, 0.01, ""))
+
+            p.start()
 
 
 def plot_all_pretrained_comparison():
@@ -227,3 +240,4 @@ def plot_all_pretrained_comparison():
 
 if __name__ == "__main__":
     plot_all_pretrained_comparison()
+    run_pretrained_recompute_comparison()

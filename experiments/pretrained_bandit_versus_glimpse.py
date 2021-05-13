@@ -60,7 +60,7 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
         all_q = exp.all_batches()
         log = [i+1]
         log.extend(list(compute_accuracy(
-            exp.kg(), all_q, glimpse_summary_to_list_of_entities(glimpse_summary))))
+            exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
         log.append(t2 - t1)
         bandit_summary = glimpse_online.construct_summary()
         log.extend(list(
