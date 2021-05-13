@@ -4,7 +4,7 @@ from human_id import generate_id
 
 
 class Queries(object):
-    def __init__(self, kg, mode='continuous', batch_size=1000, adversarial_degree=0.01):
+    def __init__(self, kg, mode='continuous', batch_size=1000, adversarial_degree=0.1):
         self.id = generate_id()
         self.mode = mode
         self.batch_size = batch_size
@@ -78,11 +78,17 @@ class Queries(object):
                         entities = np.append(
                             entities, list(self.kg.triples[e1][r]))
 
-            #seen_entities = seen_entities.union(current_entities)
         return np.array(entities)
 
     def generate_queries(self, number_of_queries):
-        n = self.kg.number_of_entities
+        number_to_sample = math.ceil(
+            self.adversarial_degree * self.kg.number_of_entities)
+
+        additional_entities = np.random.choice(
+            list(self.kg.triples.keys()), number_to_sample)
+
+        self.initial_entities = np.append(
+            additional_entities, self.initial_entities)
 
         chosen_entities = np.array([])
 

@@ -180,10 +180,11 @@ def plot_bandit_run(size, files):
 
 
 def run_timed_training():
-    graph = "10pow6_edges"
+    graph = "10pow3_edges"
     reward_functions = ["kg", "binary"]
     batch_size = 5000
-    deltas = [10, 100, 1000, 7200, 18000, 36000]
+    #deltas = [10, 100, 1000, 7200, 18000, 36000]
+    deltas = [10]
 
     for reward_function in reward_functions:
         for delta in deltas:
@@ -221,21 +222,18 @@ def run_pretrained_comparison():
 
 
 def plot_all_pretrained_comparison():
-    graph = "10pow6_edges"
+    graph = "10pow_6edges"
     reward_functions = ["kg", "binary"]
-    deltas = [10, 100, 1000, 7200, 18000, 36000]
+    #deltas = [10, 100, 1000, 7200, 18000, 36000]
+    deltas = [10]
     recompute_n = [1, 3, 4, 5]
 
     filenames = [
-"k10000rounds20.csv",
-"k10000rounds20_2delta.csv",
-"k10000rounds20_onehalftime.csv",
-"k10000rounds20_onethirdtime.csv",
-"k10000rounds40_.csv",
-"k10000rounds40_recompute_1.csv",
-"k10000rounds40_recompute_3.csv",
-"k10000rounds40_recompute_4.csv",
-"k10000rounds40_recompute_5.csv"
+        "k10rounds40_.csv",
+        "k10rounds40_recompute_1.csv",
+        "k10rounds40_recompute_3.csv",
+        "k10rounds40_recompute_4.csv",
+        "k10rounds40_recompute_5.csv",
     ]
     for reward_function in reward_functions:
         for delta in deltas:
@@ -248,6 +246,7 @@ def plot_all_pretrained_comparison():
 
 
 if __name__ == "__main__":
-    plot_all_pretrained_comparison()
-#    run_pretrained_comparison()
-    #run_pretrained_recompute_comparison()
+    # run_pretrained_recompute_comparison()
+    run_pretrained_comparison()
+    # run_timed_training()
+    # plot_all_pretrained_comparison()
