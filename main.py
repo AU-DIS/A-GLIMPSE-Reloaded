@@ -191,5 +191,18 @@ def run_timed_training():
             p.start()
 
 
+def run_pretrained_comparison():
+    graph = "10pow6_edges"
+    reward_functions = ["kg", "binary"]
+    deltas = [10, 100, 1000, 7200, 18000, 36000]
+    for reward_function in reward_functions:
+        for delta in deltas:
+            experiment_dir = f"timed_bandits_test_regret_{reward_function}_{delta}"
+            p = Process(target=pretrained.run_static_experiment,
+                        args=(experiment_dir, graph, 20, 0.01))
+
+            p.start()
+
+
 if __name__ == "__main__":
-    pretrained.run_static_experiment()
+    run_pretrained_comparison

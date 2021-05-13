@@ -40,11 +40,11 @@ class Heap(object):
         self.i = 0
         self.u = 0
 
-        for triple in KG.triples():
+        for triple in KG.triple_to_id.keys():
             e1, r, e2 = triple
             total = KG.entity_value(e1) + \
-                    KG.entity_value(e2) + \
-                    KG.triple_value(triple)
+                KG.entity_value(e2) + \
+                KG.triple_value(triple)
 
             if total > 0:
                 self.heap_.append(Heap.Triple(triple, total))
@@ -105,15 +105,16 @@ class Heap(object):
             return
 
         # Sample according to "lazy lazy greedy"
-        indices = np.random.randint(0, n, size=sample_size) if sample_size < n else np.arange(n)
+        indices = np.random.randint(
+            0, n, size=sample_size) if sample_size < n else np.arange(n)
         triples = self._triples_at_index(indices)
         before, after = self._lazy_greedy(S, triples)
         if before == after:
             self._move_to_top(after.index_)
-            self.i +=1
+            self.i += 1
             return
         else:
-            self.u +=1
+            self.u += 1
 
         # If lazy fails, update marginals of sampled set
         top, argmax = self.heap_[0], 0

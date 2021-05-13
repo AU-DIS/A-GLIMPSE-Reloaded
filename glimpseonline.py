@@ -33,15 +33,9 @@ class Online_GLIMPSE(object):
     def construct_summary(self):
         s = Summary(self.KG)
 
-        # If we have fewer triples than K, we must select them all
-        if self.number_of_triples <= self.K:
-            s.fill(self.KG.triples(), self.K)
-
-        else:
-            self.choices = self.bandit.choose_k(self.K)
-            self.choices = self.indices_to_triples()
-            s.fill(self.choices, self.K)
-
+        self.choices = self.bandit.choose_k(self.K)
+        self.choices = self.indices_to_triples()
+        s.fill(self.choices, self.K)
         return s
 
     def indices_to_triples(self):

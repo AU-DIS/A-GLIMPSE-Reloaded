@@ -19,7 +19,7 @@ class Queries(object):
 
         self.has_yielded_set_ = set()
         self.internal_entities_ = self.generate_queries(
-            1000 * 10) 
+            1000 * 10)
 
         self.iteration_count_ = 1
 
@@ -40,6 +40,7 @@ class Queries(object):
         if self.iteration_count_ > len(self.internal_entities_):
             self.internal_entities_ = np.concatenate((self.internal_entities_, self.generate_queries(
                 1000 * 10)))
+            return self.batch()
         return entities
 
     def reset(self):
