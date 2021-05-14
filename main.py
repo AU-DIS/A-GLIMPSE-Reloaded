@@ -1,12 +1,12 @@
 from subgraphs import random_induced_subgraph
 from experiments.subgraph_experiments import subgraph_experiments
 import os
-from time import sleep
+from time import process_time, sleep
 from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, load_kg, save_kg
 from glimpse.src.query import generate_query
 import repl_assistant as repl
 import numpy as np
-from multiprocessing import Process
+from multiprocessing import Process, process
 import experiment
 from subgraphs import random_induced_subgraph
 from theoretical.exp3_subgraph import plot_combined_theoretical
@@ -163,14 +163,27 @@ def run_compares(graph_size=10**3):
     batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
                    0.2 * graph_size, 0.3 * graph_size]
     numbers_of_rounds = [10, 20, 30]
-
+    processes = []
     for rf in reward_functions:
         for k in ks:
             for bs in batch_sizes:
                 for n in numbers_of_rounds:
                     p = Process(target=run_compare_experiment,
                                 args=(graph, n, k, bs, rf))
-                    p.start()
+                    processes.append(p)
+
+    max_p = 5
+    currently_active = []
+    while len(processes) > 0:
+        a = []
+        for p in currently_active:
+            if p.is_alive():
+                a.append(p)
+        if len(a) <= max_p:
+            p = processes.pop()
+            a.append(p)
+            p.start()
+        currently_active = a
 
 
 if __name__ == "__main__":
