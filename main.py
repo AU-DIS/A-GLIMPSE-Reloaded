@@ -138,10 +138,10 @@ def run_pretrained_comparison(graph, deltas):
 
 def plot_all_pretrained_comparison(graph, deltas):
     reward_functions = ["kg", "binary"]
-    filenames = ["k10rounds40_.csv"]
+    filenames = ["k10000rounds40_.csv"]
     recompute_n = [1, 3, 4, 5]
     for n in recompute_n:
-        filenames.append(f"k10rounds40_recompute_{n}.csv")
+        filenames.append(f"k10000rounds40_recompute_{n}.csv")
 
     for reward_function in reward_functions:
         for delta in deltas:
@@ -156,7 +156,7 @@ def plot_all_pretrained_comparison(graph, deltas):
 if __name__ == "__main__":
     graph = "10pow6_edges"
     deltas = [10, 100, 1000, 50, 500, 5000]
-    run_pretrained_recompute_comparison(graph, deltas)
-    run_pretrained_comparison(graph, deltas)
-    run_timed_training(graph, deltas)
+    #run_pretrained_recompute_comparison(graph, deltas)
+    #run_pretrained_comparison(graph, deltas)
+    #run_timed_training(graph, deltas)
     plot_all_pretrained_comparison(graph, deltas)
