@@ -42,7 +42,6 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
 
     exp.begin_experiment(experiment_id)
     q = exp.batch()
-
     t1 = time.process_time()
     glimpse_summary = GLIMPSE(exp.kg(), k, q)
     t2 = time.process_time()
@@ -52,7 +51,7 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
         if recompute_n is not None:
             if i % recompute_n == 0:
                 t1 = time.process_time()
-                glimpse_summary = GLIMPSE(exp.kg(), k, q)
+                glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
                 t2 = time.process_time()
                 bandit_delta = t2 - t1
 
@@ -67,8 +66,7 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
             compute_accuracy(
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
-
-        delta = time.process_time() + bandit_delta
+        delta = time.process_time() + (bandit_delta * 0.2)
         log.append(delta)
         while time.process_time() < delta:
             glimpse_online.construct_summary()
@@ -81,7 +79,6 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
 
 
 def compute_accuracy(kg, queries, summary):
-    print(len(queries), len(summary))
     unique_entities = set()
     total_hits = 0
     total = 0

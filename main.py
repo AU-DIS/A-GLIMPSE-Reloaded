@@ -43,84 +43,6 @@ def run_glimpse_once():
               )
 
 
-def synthetic_experiment():
-    kg = DBPedia('DBPedia3.9/')
-    kg.load()
-    number_of_topics = 200
-    topics = kg.entity_names()
-    topic_keys = [x for x in topics.keys()]
-    topics = [topics[topic_keys[x]] for x in range(number_of_topics)]
-    topic_keys = []
-    queries = [generate_query(kg, topic) for topic in topics]
-    answers = [x['Parse']['Answers'] for x in queries]
-    answer_entity_names = [[a_name['EntityName']
-                            for a_name in answer] for answer in answers]
-    train_split, test_split = makeTrainingTestSplit(answer_entity_names, kg)
-    e = 0.1
-    k = 0.01
-    summary = GLIMPSE(kg, k, train_split, e)
-    mean_accuracy, total_entities, total_count = calculateAccuracyAndTotals(
-        test_split, summary)
-    print(mean_accuracy, total_entities, total_count)
-
-
-def parameters_experiment():
-
-    exp = experiment.Experiment("Static", "Parameters experiment")
-
-    E = np.linspace(0.01, 1, 20, endpoint=False)
-    for i in range(0, 20):
-        run_static_glimpse(10000, 30, E[i], exp)
-
-    for i in range(0, 20):
-        recompute_glimpse(10000, 100, E[i], 10, exp)
-
-    for i in range(0, 20):
-        recompute_glimpse(10000, 100, 0.1, 5 * (i+1), exp)
-
-
-def exp3m_parameters():
-    exp = experiment.Experiment(
-        comment="Diverse experiment med bandit parametre")
-
-    E = np.linspace(0.01, 1, 10, endpoint=False)
-
-    for i in range(0, 10):
-        bandit_glimpse(10000, 1000, exp, E[i], same_queries=True)
-
-    for i in range(0, 10):
-        bandit_glimpse(10000, 1000, exp, E[i], same_queries=False)
-
-
-def exp3m_longrun():
-    exp = experiment.Experiment(
-        comment="exp3m longrun same queries")
-
-    bandit_glimpse(10000, 3000, exp, 0.1, same_queries=True)
-
-
-def exp_longrun():
-    exp = experiment.Experiment(comment="exp3 longrun")
-
-    bandit_glimpse(10000, 10800, exp, 0.1, "exp3", same_queries=True)
-
-
-def exp3m_non_adversarial():
-    exp = experiment.Experiment(
-        comment="exp3m non adversarial queries",
-        adversarial_degree=0.00001)
-
-    bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
-
-
-def exp3_non_adversarial():
-    exp = experiment.Experiment(
-        comment="exp3 non adversarial queries",
-        adversarial_degree=0.00001)
-
-    bandit_glimpse(10000, 2000, exp, 0.1, same_queries=True)
-
-
 def run_bandits_on_subgraph(subgraph, edge_budget, experiment_name):
     proportion = 0.01
     k = proportion * edge_budget
@@ -179,24 +101,19 @@ def plot_bandit_run(size, files):
         f"experiments_results/{size}", filenames, labels)
 
 
-def run_timed_training():
-    graph = "10pow3_edges"
+def run_timed_training(graph, deltas):
     reward_functions = ["kg", "binary"]
-    batch_size = 5000
-    #deltas = [10, 100, 1000, 7200, 18000, 36000]
-    deltas = [10]
+    batch_size = 100
 
     for reward_function in reward_functions:
         for delta in deltas:
             p = Process(target=run_on_graph, args=(graph, f"timed_run_{graph}",
-                                                   delta, 5000, reward_function, 0.01))
+                                                   delta, reward_function, 0.01))
             p.start()
 
 
-def run_pretrained_recompute_comparison():
-    graph = "10pow6_edges"
+def run_pretrained_recompute_comparison(graph, deltas):
     reward_functions = ["kg", "binary"]
-    deltas = [10, 100, 1000, 7200, 18000, 36000]
     recompute_n = [1, 3, 4, 5]
     for reward_function in reward_functions:
         for delta in deltas:
@@ -208,10 +125,8 @@ def run_pretrained_recompute_comparison():
                 p.start()
 
 
-def run_pretrained_comparison():
-    graph = "10pow6_edges"
+def run_pretrained_comparison(graph, deltas):
     reward_functions = ["kg", "binary"]
-    deltas = [10, 100, 1000, 7200, 18000, 36000]
     for reward_function in reward_functions:
         for delta in deltas:
             experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
@@ -221,20 +136,13 @@ def run_pretrained_comparison():
             p.start()
 
 
-def plot_all_pretrained_comparison():
-    graph = "10pow_6edges"
+def plot_all_pretrained_comparison(graph, deltas):
     reward_functions = ["kg", "binary"]
-    #deltas = [10, 100, 1000, 7200, 18000, 36000]
-    deltas = [10]
+    filenames = ["k10rounds40_.csv"]
     recompute_n = [1, 3, 4, 5]
+    for n in recompute_n:
+        filenames.append(f"k10rounds40_recompute_{n}.csv")
 
-    filenames = [
-        "k10rounds40_.csv",
-        "k10rounds40_recompute_1.csv",
-        "k10rounds40_recompute_3.csv",
-        "k10rounds40_recompute_4.csv",
-        "k10rounds40_recompute_5.csv",
-    ]
     for reward_function in reward_functions:
         for delta in deltas:
             for n in recompute_n:
@@ -246,7 +154,9 @@ def plot_all_pretrained_comparison():
 
 
 if __name__ == "__main__":
-    # run_pretrained_recompute_comparison()
-    run_pretrained_comparison()
-    # run_timed_training()
-    # plot_all_pretrained_comparison()
+    graph = "10pow6_edges"
+    deltas = [10, 100, 1000, 50, 500, 5000]
+    run_pretrained_recompute_comparison(graph, deltas)
+    run_pretrained_comparison(graph, deltas)
+    run_timed_training(graph, deltas)
+    plot_all_pretrained_comparison(graph, deltas)

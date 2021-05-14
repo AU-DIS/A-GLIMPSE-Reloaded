@@ -8,11 +8,15 @@ import sys
 sys.path.append('..')
 
 
-def run_on_graph(graph, experiment_name, delta, batch_size=1000, rf="kg", k_proportion=0.01):
+def run_on_graph(graph, experiment_name, delta, rf="kg", k_proportion=0.01):
     timed_bandit_dir = f"timed_bandits_{experiment_name}_{rf}_{delta}"
 
     exp = experiment.Experiment(comment="Timed trained bandit",
-                                graph=graph, dir=timed_bandit_dir, name=f"Timed_bandit_{experiment_name}", batch_size=batch_size)
+                                graph=graph, dir=timed_bandit_dir, name=f"Timed_bandit_{experiment_name}", batch_size=1000)
+
+    k = int(exp.kg().number_of_triples * k_proportion)
+    exp.batch_size = k
+    exp.Q_.batch_size = k
 
     regret_list_of_properties = ["round", "regret"]
     annotation = "regret"
@@ -20,7 +24,6 @@ def run_on_graph(graph, experiment_name, delta, batch_size=1000, rf="kg", k_prop
     regret_id = exp.create_experiment(
         regret_list_of_properties, annotation, f"Timed experiment with delta {delta} and k = {k_proportion} and rewrd function {rf}")
 
-    k = int(exp.kg().number_of_triples * k_proportion)
     exp.begin_experiment(regret_id)
 
     q = exp.batch()

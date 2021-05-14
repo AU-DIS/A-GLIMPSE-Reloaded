@@ -11,15 +11,18 @@ class Queries(object):
         self.adversarial_degree = adversarial_degree
         self.kg = kg
 
-        number_to_sample = math.ceil(
-            adversarial_degree * kg.number_of_entities)
-
-        self.initial_entities = np.random.choice(
-            list(self.kg.triples.keys()), number_to_sample)
-
         self.has_yielded_set_ = set()
-        self.internal_entities_ = self.generate_queries(
-            1000 * 10)
+
+        sampled_triples = np.random.choice(
+            range(kg.number_of_triples), batch_size, replace=True)
+
+        sampled_triples = [kg.id_to_triple[x] for x in sampled_triples]
+        self.internal_entities_ = []
+        for (e1, r, e2) in sampled_triples:
+            self.internal_entities_.extend([e1, e2])
+
+        self.internal_entities_.extend(self.generate_queries(
+            1000 * 10))
 
         self.iteration_count_ = 1
 
@@ -38,8 +41,8 @@ class Queries(object):
 
         # Make 2 additional batches
         if self.iteration_count_ > len(self.internal_entities_):
-            self.internal_entities_ = np.concatenate((self.internal_entities_, self.generate_queries(
-                1000 * 10)))
+            self.internal_entities_.extend(self.generate_queries(
+                1000 * 10))
             return self.batch()
         return entities
 
@@ -57,8 +60,8 @@ class Queries(object):
 
             # Make 2 additional batches
             if self.iteration_count_ > len(self.internal_entities_):
-                self.internal_entities_ = np.concatenate((self.internal_entities_, self.generate_queries(
-                    1000 * 2, self.adversarial_degree)))
+                self.internal_entities_.extend(self.generate_queries(
+                    1000 * 2, self.adversarial_degree))
 
             return e
         else:
@@ -68,35 +71,33 @@ class Queries(object):
     def __iter__(self):
         return self
 
-    def non_unique_bfs_(self, start, breadth=5):
-        entities = np.array([start])
-
-        for _ in range(breadth):
-            for e1 in entities:
-                if e1 in self.kg.triples.keys():
+    def bfs(self, entities, breadth=5):
+        has_seen = set()
+        candidates = set(entities)
+        for i in range(breadth):
+            round_candidates = set()
+            for e1 in candidates:
+                e1 = int(e1)
+                has_seen.add(e1)
+                if e1 in self.kg.triples:
                     for r in self.kg.triples[e1]:
-                        entities = np.append(
-                            entities, list(self.kg.triples[e1][r]))
-
-        return np.array(entities)
+                        for e2 in self.kg.triples[e1][r]:
+                            e2 = int(e2)
+                            round_candidates.add(e2)
+            candidates = candidates.union(round_candidates)
+            candidates = candidates.difference(has_seen)
+        has_seen = has_seen.union(candidates)
+        return list(has_seen)
 
     def generate_queries(self, number_of_queries):
-        number_to_sample = math.ceil(
-            self.adversarial_degree * self.kg.number_of_entities)
+        candidates = [self.internal_entities_[0]]
+        while len(candidates) < number_of_queries:
+            recycled = np.random.choice(
+                range(len(self.internal_entities_)), int(number_of_queries * (1 - self.adversarial_degree)), replace=True)
+            bfs_of_recycled = self.bfs(recycled)
+            candidates.extend(bfs_of_recycled)
+            adversarial_entities = np.random.choice(
+                range(self.kg.number_of_entities), int(self.adversarial_degree * number_of_queries))
+            candidates.extend(adversarial_entities)
 
-        additional_entities = np.random.choice(
-            list(self.kg.triples.keys()), number_to_sample)
-
-        self.initial_entities = np.append(
-            additional_entities, self.initial_entities)
-
-        chosen_entities = np.array([])
-
-        while len(chosen_entities) < number_of_queries:
-            for e in self.initial_entities:
-                chosen_entities = np.concatenate(
-                    (self.non_unique_bfs_(e), chosen_entities))
-        chosen_entities = chosen_entities.astype('int')
-
-        chosen_entities = np.random.choice(chosen_entities, number_of_queries)
-        return chosen_entities
+        return np.random.choice(candidates, number_of_queries, replace=True)
