@@ -33,16 +33,17 @@ class Queries(object):
         return self.internal_entities_[:self.iteration_count_]
 
     def batch(self):
-        i = self.iteration_count_
-        self.iteration_count_ += self.batch_size
-        entities = self.internal_entities_[i:i+self.batch_size]
+        entities = []
+        while len(entities) < self.batch_size:
+            if self.iteration_count_ >= len(self.internal_entities_):
+                self.internal_entities_.extend(self.generate_queries(
+                    self.batch_size * 10))
+            entities.append(self.internal_entities_[self.iteration_count_])
+            self.iteration_count_ += 1
+
         for e in entities:
             self.has_yielded_set_.add(e)
 
-        # Make 2 additional batches
-        while self.iteration_count_ >= len(self.internal_entities_):
-            self.internal_entities_.extend(self.generate_queries(
-                self.batch_size * 10))
         return entities
 
     def reset(self):
