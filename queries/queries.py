@@ -40,9 +40,12 @@ class Queries(object):
             self.has_yielded_set_.add(e)
 
         # Make 2 additional batches
-        if self.iteration_count_ > len(self.internal_entities_):
+        triggered_recompute = False
+        while self.iteration_count_ > len(self.internal_entities_):
             self.internal_entities_.extend(self.generate_queries(
                 1000 * 10))
+            triggered_recompute = True
+        if triggered_recompute:
             return self.batch()
         return entities
 
