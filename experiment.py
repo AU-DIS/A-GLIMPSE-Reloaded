@@ -97,8 +97,8 @@ class Experiment(object):
     def batch_size(self):
         return self.Q_.batch_size
 
-    def batch(self):
-        return self.Q_.batch()
+    def batch(self, k):
+        return self.Q_.batch(k)
 
     # Expose queries so experiments don't have to deal with an extra object
     def all_batches(self):

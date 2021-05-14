@@ -1,4 +1,5 @@
 import math
+from random import shuffle
 import numpy as np
 from human_id import generate_id
 
@@ -24,6 +25,8 @@ class Queries(object):
         self.internal_entities_.extend(self.generate_queries(
             1000 * 10))
 
+        shuffle(self.internal_entities_)
+
         self.iteration_count_ = 1
 
     def __contains__(self, entity):
@@ -32,9 +35,9 @@ class Queries(object):
     def all_batches(self):
         return self.internal_entities_[:self.iteration_count_]
 
-    def batch(self):
+    def batch(self, k):
         entities = []
-        while len(entities) < self.batch_size:
+        while len(entities) < k:
             if self.iteration_count_ >= len(self.internal_entities_):
                 self.internal_entities_.extend(self.generate_queries(
                     self.batch_size * 10))
@@ -77,12 +80,10 @@ class Queries(object):
         for i in range(breadth):
             round_candidates = set()
             for e1 in candidates:
-                e1 = int(e1)
                 has_seen.add(e1)
                 if e1 in self.kg.triples:
                     for r in self.kg.triples[e1]:
                         for e2 in self.kg.triples[e1][r]:
-                            e2 = int(e2)
                             round_candidates.add(e2)
             candidates = candidates.union(round_candidates)
             candidates = candidates.difference(has_seen)
@@ -94,6 +95,7 @@ class Queries(object):
         while len(candidates) < number_of_queries:
             recycled = np.random.choice(
                 range(len(self.internal_entities_)), int(number_of_queries * (1 - self.adversarial_degree)), replace=True)
+            recycled = [self.internal_entities_[i] for i in recycled]
             bfs_of_recycled = self.bfs(recycled)
             candidates.extend(bfs_of_recycled)
             adversarial_entities = np.random.choice(

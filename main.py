@@ -13,6 +13,7 @@ from theoretical.exp3_subgraph import plot_combined_theoretical
 from experiments.timed_bandit_trainer import run_on_graph
 import experiments.pretrained_bandit_versus_glimpse as pretrained
 from plotting.plot_bandit_vs_glimpse import plot_combined
+from experiments.bandit_versus_glimpse import run_compare_experiment
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -120,7 +121,7 @@ def run_pretrained_recompute_comparison(graph, deltas):
             for n in recompute_n:
                 experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
                 p = Process(target=pretrained.run_compare_function_experiment,
-                            args=(experiment_dir, graph, 40, 0.01, f"recompute_{n}", n))
+                            args=(experiment_dir, graph, 40, 0.1, f"recompute_{n}", n))
 
                 p.start()
 
@@ -131,17 +132,19 @@ def run_pretrained_comparison(graph, deltas):
         for delta in deltas:
             experiment_dir = f"timed_bandits_timed_run_{graph}_{reward_function}_{delta}"
             p = Process(target=pretrained.run_compare_function_experiment,
-                        args=(experiment_dir, graph, 40, 0.01, ""))
+                        args=(experiment_dir, graph, 40, 0.1, ""))
 
             p.start()
 
 
 def plot_all_pretrained_comparison(graph, deltas):
     reward_functions = ["kg", "binary"]
-    filenames = ["k10000rounds40_.csv"]
+    #filenames = ["k10000rounds40_.csv"]
+    filenames = ["k100rounds40_.csv"]
     recompute_n = [1, 3, 4, 5]
     for n in recompute_n:
-        filenames.append(f"k10000rounds40_recompute_{n}.csv")
+        # filenames.append(f"k10000rounds40_recompute_{n}.csv")
+        filenames.append(f"k100rounds40_recompute_{n}.csv")
 
     for reward_function in reward_functions:
         for delta in deltas:
@@ -153,10 +156,28 @@ def plot_all_pretrained_comparison(graph, deltas):
                     p.start()
 
 
+def run_compares(graph_size=10**3):
+    graph = "10pow3_edges"
+    reward_functions = ["kg", "binary"]
+    ks = [0.01, 0.1, 0.2, 0.3]
+    batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
+                   0.2 * graph_size, 0.3 * graph_size]
+    numbers_of_rounds = [10, 20, 30]
+
+    for rf in reward_functions:
+        for k in ks:
+            for bs in batch_sizes:
+                for n in numbers_of_rounds:
+                    p = Process(target=run_compare_experiment,
+                                args=(graph, n, k, bs, rf))
+                    p.start()
+
+
 if __name__ == "__main__":
-    graph = "10pow6_edges"
-    deltas = [10, 100, 1000, 50, 500, 5000]
-    #run_pretrained_recompute_comparison(graph, deltas)
-    #run_pretrained_comparison(graph, deltas)
-    #run_timed_training(graph, deltas)
-    plot_all_pretrained_comparison(graph, deltas)
+    graph = "10pow3_edges"
+    run_compares()
+
+    # run_pretrained_recompute_comparison(graph)
+    # run_pretrained_comparison(graph)
+    # run_timed_training(graph)
+    # plot_all_pretrained_comparison(graph)

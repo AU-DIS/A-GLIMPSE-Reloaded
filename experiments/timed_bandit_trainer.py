@@ -26,10 +26,10 @@ def run_on_graph(graph, experiment_name, delta, rf="kg", k_proportion=0.01):
 
     exp.begin_experiment(regret_id)
 
-    q = exp.batch()
+    q = exp.batch(k)
 
     glimpse_online = g.Online_GLIMPSE(
-        exp.kg(), k, initial_entities=None, gamma=0.07, bandit="exp3", reward_function=rf)
+        exp.kg(), k*10, initial_entities=None, gamma=0.07, bandit="exp3", reward_function=rf)
 
     end_times = time.time() + delta
 

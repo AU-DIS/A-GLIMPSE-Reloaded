@@ -1,3 +1,4 @@
+from plotting.plot_bandit_vs_glimpse import plot_combined
 from glimpse.src.glimpse import GLIMPSE
 from bandits.efficient_bandits.exp3 import exp3_efficient_bandit
 import os
@@ -9,54 +10,38 @@ import experiment as experiment
 import sys
 sys.path.append('..')
 
+
 try:
     import cPickle as pickle
 except ModuleNotFoundError:
     import pickle
 
 
-def load_experiment(exp_path):
-    with open(f"{exp_path}/experiment_picked", 'rb') as f:
-        return pickle.load(f)
+def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01, batch_size=10, rf="kg"):
+    compare_bandits_dir = "comparison_results"
+    exp = experiment.Experiment(graph=graph, dir=compare_bandits_dir)
 
-
-def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01, annotation="", recompute_n=None):
-    data_dir = "experiments_results"
-    bandit_path = f"{data_dir}/{experiment_dir}/bandit.npy"
-
-    exp = load_experiment(f"{data_dir}/{experiment_dir}")
-    exp.update_graph(graph)
-    k = int(exp.kg().number_of_triples * k_proportion)
-    glimpse_online = g.Online_GLIMPSE(
-        exp.kg(), k, bandit_path, bandit="exp3", reward_function="kg")
-
-    annotation = f"k{k}rounds{number_of_rounds}_{annotation}"
-    comment = f"Bandit versus GLIMPSE k = {k} rounds = {number_of_rounds}"
-
-    exp.experiment_id = "glimpse"
     list_of_properties = [
         "round", "glimpse_unique_hits, glimpse_no_unique_entities, glimpse_total_hits, glimpse_total, glimpse_accuracy, glimpse_speed, bandit_unique_hits, bandit_no_unique_entities, bandit_total_hits, bandit_total, bandit_accuracy, bandit_speed"
     ]
+
+    annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}"
+
     experiment_id = exp.create_experiment(
-        list_of_properties, annotation, comment)
+        list_of_properties, annotation, comment=f"Bandit vs GLIMPSE graph={graph}, number of rounds = {number_of_rounds}, kproportion={k_proportion}")
 
     exp.begin_experiment(experiment_id)
-    q = exp.batch(k)
+
+    k = int(k_proportion * exp.kg().number_of_entities)
+    q = exp.batch(batch_size)
     t1 = time.process_time()
     glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
     t2 = time.process_time()
     bandit_delta = t2 - t1
+    glimpse_online = g.Online_GLIMPSE(
+        exp.kg(), k, bandit="exp3", reward_function=rf)
 
-    for i in range(0, number_of_rounds):
-        if recompute_n is not None:
-            if i % recompute_n == 0:
-                t1 = time.process_time()
-                glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
-                t2 = time.process_time()
-                bandit_delta = t2 - t1
-
-        # Compute accuracy
-        all_q = exp.all_batches()
+    for i in range(number_of_rounds):
         log = [i+1]
         log.extend(list(compute_accuracy(
             exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
@@ -66,16 +51,22 @@ def run_compare_function_experiment(experiment_dir, graph="10pow3_edges", number
             compute_accuracy(
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
+
         delta = time.process_time() + (bandit_delta * 0.2)
         log.append(delta)
+        all_q = exp.all_batches()
         while time.process_time() < delta:
             glimpse_online.construct_summary()
             glimpse_online.update_queries(all_q)
 
         exp.add_experiment_results(experiment_id, log)
-        q = exp.batch(k)
+        q = exp.batch(batch_size)
 
     exp.end_experiment(experiment_id)
+
+    plot_combined(exp.files_[experiment_id],
+                  exp.files_[experiment_id],
+                  f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}")
 
 
 def compute_accuracy(kg, queries, summary):

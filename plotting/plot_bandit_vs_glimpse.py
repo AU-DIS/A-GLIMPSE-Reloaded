@@ -6,7 +6,7 @@ import os
 from multiprocessing import Process
 
 
-def plot_combined(output_path, filename):
+def plot_combined(output_path, filename, xlabel=""):
     markers = ['-', '--', '-.', ':']
     ax = None
     i = 0
@@ -23,6 +23,6 @@ def plot_combined(output_path, filename):
 
     ax.set_ylim([0, 1])
     ax.legend(["Bandit accuracy", "Glimpse accuracy"])
-
+    ax.set_xlabel(xlabel)
     plt.tight_layout()
     plt.savefig(f"{output_path}.png")
