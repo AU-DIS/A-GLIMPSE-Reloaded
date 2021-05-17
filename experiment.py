@@ -2,6 +2,7 @@ from os import path
 from human_id import generate_id
 import human_id
 from queries.queries import Queries
+from queries.reference_queries import Reference_Queries
 from glimpse.src.experiment_base import DBPedia, load_kg
 import os
 import time
@@ -12,7 +13,7 @@ except ModuleNotFoundError:
 
 
 class Experiment(object):
-    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None, batch_size=1000):
+    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None, batch_size=1000, query_generator="proprietary"):
         if dir is None:
             self.id = generate_id()
         else:
@@ -23,8 +24,14 @@ class Experiment(object):
         else:
             self.kg_ = load_kg(graph)
         self.type_tring = type_string
-        self.Q_ = Queries(
-            self.kg_, adversarial_degree=adversarial_degree, batch_size=batch_size)
+        if query_generator == "proprietary":
+            self.Q_ = Queries(
+                self.kg_, adversarial_degree=adversarial_degree, batch_size=batch_size)
+        elif query_generator == "reference":
+            self.Q_ = Reference_Queries(
+                self.kg_, adversarial_degree=adversarial_degree, batch_size=batch_size
+            )
+
         self.path_ = f"experiments_results/{self.id}"
         self.write_buffers_ = {}
         self.write_every_ = 1000**2

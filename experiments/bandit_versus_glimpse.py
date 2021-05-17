@@ -17,18 +17,19 @@ except ModuleNotFoundError:
     import pickle
 
 
-def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01, batch_size=10, rf="kg"):
+def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01, batch_size=10, rf="kg", query_generator="proprietary"):
     compare_bandits_dir = "comparison_results"
-    exp = experiment.Experiment(graph=graph, dir=compare_bandits_dir)
+    exp = experiment.Experiment(
+        graph=graph, dir=compare_bandits_dir, query_generator=query_generator)
 
     list_of_properties = [
         "round", "glimpse_unique_hits, glimpse_no_unique_entities, glimpse_total_hits, glimpse_total, glimpse_accuracy, glimpse_speed, bandit_unique_hits, bandit_no_unique_entities, bandit_total_hits, bandit_total, bandit_accuracy, bandit_speed"
     ]
 
-    annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}"
+    annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}_generator{query_generator}"
 
     experiment_id = exp.create_experiment(
-        list_of_properties, annotation, comment=f"Bandit vs GLIMPSE graph={graph}, number of rounds = {number_of_rounds}, kproportion={k_proportion}")
+        list_of_properties, annotation, comment=f"Bandit vs GLIMPSE graph={graph}, number of rounds = {number_of_rounds}, kproportion={k_proportion} query generator {query_generator}")
 
     exp.begin_experiment(experiment_id)
 

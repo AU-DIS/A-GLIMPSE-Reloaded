@@ -14,6 +14,7 @@ from experiments.timed_bandit_trainer import run_on_graph
 import experiments.pretrained_bandit_versus_glimpse as pretrained
 from plotting.plot_bandit_vs_glimpse import plot_combined
 from experiments.bandit_versus_glimpse import run_compare_experiment
+import time
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -156,25 +157,26 @@ def plot_all_pretrained_comparison(graph, deltas):
                     p.start()
 
 
-def run_compares(graph_size=10**3):
-    graph = "10pow3_edges"
+def run_compares(graph, graph_size=10**3):
     reward_functions = ["kg", "binary"]
     ks = [0.01, 0.1, 0.2, 0.3]
     batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
                    0.2 * graph_size, 0.3 * graph_size]
-    numbers_of_rounds = [10, 20, 30]
     n = 40
+    query_generators = ["proprietary", "reference"]
     processes = []
     for rf in reward_functions:
         for k in ks:
             for bs in batch_sizes:
-                p = Process(target=run_compare_experiment,
-                            args=(graph, n, k, bs, rf))
-                processes.append(p)
+                for query_generator in query_generators:
+                    p = Process(target=run_compare_experiment,
+                                args=(graph, n, k, bs, rf, query_generator))
+                    processes.append(p)
 
     max_p = 10
     currently_active = []
     while len(processes) > 0:
+        time.sleep(1)
         a = []
         for p in currently_active:
             if p.is_alive():
@@ -188,8 +190,8 @@ def run_compares(graph_size=10**3):
 
 if __name__ == "__main__":
     graph = "10pow6_edges"
-    run_compares()
-
+    graph_size = 10**6
+    run_compares(graph, graph_size)
     # run_pretrained_recompute_comparison(graph)
     # run_pretrained_comparison(graph)
     # run_timed_training(graph)

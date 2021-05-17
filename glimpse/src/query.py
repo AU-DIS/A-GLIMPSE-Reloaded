@@ -187,15 +187,15 @@ def answer_query(KG, query):
         candidates = set()
         for entity in result:
             if entity in KG.id_to_entity.keys() and predicate in KG.triples[entity]:
-                candidates.update(KG[entity][predicate])
+                candidates.update(KG.triples[entity][predicate])
         # Remove candidates that don't fit the constraints
         remove = set()
         for constraint in constraints[index]:
             argument, predicate = constraint['Argument'], constraint['NodePredicate']
             for entity in candidates:
-                if entity not in KG or \
-                        predicate not in KG[entity] or \
-                        argument not in KG[entity][predicate]:
+                if entity not in KG.id_to_entity.keys() or \
+                        predicate not in KG.triples[entity] or \
+                        argument not in KG.triples[entity][predicate]:
                     remove.add(entity)
 
         candidates = candidates.difference(remove)
@@ -224,8 +224,8 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
     entity = topic_mid
     for _ in range(chain_len):
         predicates = [
-            pred for pred in KG[entity] if pred not in exclude_preds
-        ] if entity in KG else []
+            pred for pred in KG.triples[entity] if pred not in exclude_preds
+        ] if entity in KG.triples.keys() else []
         if not predicates:
             break
 
@@ -233,7 +233,7 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
 
         inferential_chain.append(predicate)
 
-        entities = KG[entity][predicate]
+        entities = KG.triples[entity][predicate]
         entity = random.choice(list(entities))
 
     # Add constraints and get the answers
@@ -242,20 +242,21 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG and predicate in KG[entity]:
-                candidates.update(KG[entity][predicate])
+            if entity in KG.id_to_entity.keys() and predicate in KG.triples[entity]:
+                candidates.update(KG.triples[entity][predicate])
 
         if candidates and constraint_index == index:
             entity = random.choice(list(candidates))
             predicates = [
-                pred for pred in KG[entity] if pred not in inferential_chain
+                pred for pred in KG.triples[entity] if pred not in inferential_chain
                 and pred not in exclude_preds
-            ] if entity in KG else []
+            ] if entity in KG.id_to_entity.keys() else []
 
             if predicates:
                 predicate = random.choice(predicates)
-                if KG[entity][predicate]:
-                    argument = random.choice(list(KG[entity][predicate]))
+                if KG.triples[entity][predicate]:
+                    argument = random.choice(
+                        list(KG.triples[entity][predicate]))
                     constraints.append({
                         'SourceNodeIndex': index,
                         'NodePredicate': predicate,
@@ -265,9 +266,9 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
 
                     remove = set()
                     for entity in candidates:
-                        if entity not in KG or \
-                                predicate not in KG[entity] or \
-                                argument not in KG[entity][predicate]:
+                        if entity not in KG.id_to_entity.keys() or \
+                                predicate not in KG.triples[entity] or \
+                                argument not in KG.triples[entity][predicate]:
                             remove.add(entity)
                     candidates = candidates.difference(remove)
 
@@ -281,7 +282,7 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
             'InferentialChain': inferential_chain,
             'Constraints': constraints,
             'Answers': [{
-                'AnswerType': 'Entity' if KG.is_entity(answer) else 'Value',
+                'AnswerType': 'Entity' if answer < KG.number_of_entities else 'Value',
                 'AnswerArgument': answer,
                 'EntityName': get_name(answer, entity_names)
             } for answer in result.difference({topic_mid})
