@@ -163,16 +163,16 @@ def run_compares(graph_size=10**3):
     batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
                    0.2 * graph_size, 0.3 * graph_size]
     numbers_of_rounds = [10, 20, 30]
+    n = 40
     processes = []
     for rf in reward_functions:
         for k in ks:
             for bs in batch_sizes:
-                for n in numbers_of_rounds:
-                    p = Process(target=run_compare_experiment,
-                                args=(graph, n, k, bs, rf))
-                    processes.append(p)
+                p = Process(target=run_compare_experiment,
+                            args=(graph, n, k, bs, rf))
+                processes.append(p)
 
-    max_p = 5
+    max_p = 10
     currently_active = []
     while len(processes) > 0:
         a = []
@@ -187,7 +187,7 @@ def run_compares(graph_size=10**3):
 
 
 if __name__ == "__main__":
-    graph = "10pow3_edges"
+    graph = "10pow6_edges"
     run_compares()
 
     # run_pretrained_recompute_comparison(graph)

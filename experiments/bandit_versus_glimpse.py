@@ -52,7 +52,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
 
-        delta = time.process_time() + (bandit_delta * 0.2)
+        delta = time.process_time() + (bandit_delta * 1)
         log.append(delta)
         all_q = exp.all_batches()
         while time.process_time() < delta:

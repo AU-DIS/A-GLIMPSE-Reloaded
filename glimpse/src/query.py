@@ -186,17 +186,16 @@ def answer_query(KG, query):
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG.entities_.keys() and predicate in KG.triples_[KG.entities_[entity]]:
-                candidates.update(KG.triples_[KG.entities_[entity]][predicate])
-
+            if entity in KG.id_to_entity.keys() and predicate in KG.triples[entity]:
+                candidates.update(KG[entity][predicate])
         # Remove candidates that don't fit the constraints
         remove = set()
         for constraint in constraints[index]:
             argument, predicate = constraint['Argument'], constraint['NodePredicate']
             for entity in candidates:
-                if entity not in KG.entitity_to_id.keys() or \
+                if entity not in KG or \
                         predicate not in KG[entity] or \
-                        argument not in KG.triples_[entity][predicate]:
+                        argument not in KG[entity][predicate]:
                     remove.add(entity)
 
         candidates = candidates.difference(remove)
@@ -223,44 +222,40 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
 
     # Create the core inferential chain (directed path) first
     entity = topic_mid
-    entity_index = KG.entities_[entity]
-
     for _ in range(chain_len):
         predicates = [
-            pred for pred in KG.triples_[entity_index] if pred not in exclude_preds
-        ] if entity_index in KG.triples_.keys() else []
-
+            pred for pred in KG[entity] if pred not in exclude_preds
+        ] if entity in KG else []
         if not predicates:
             break
 
         predicate = random.choice(predicates)
-        inferential_chain.append(predicate)
-        entities = KG.triples_[entity_index][predicate]
 
-        entity_index = random.choice(list(entities))
-        entity = KG.entity_to_id[entity_index]
+        inferential_chain.append(predicate)
+
+        entities = KG[entity][predicate]
+        entity = random.choice(list(entities))
 
     # Add constraints and get the answers
-    result = {entity_index}
+    result = {topic_mid}
     for index, predicate in enumerate(inferential_chain):
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG.triples_.keys() and predicate in KG.triples_[entity]:
-                candidates.update(KG.triples_[entity][predicate])
+            if entity in KG and predicate in KG[entity]:
+                candidates.update(KG[entity][predicate])
 
         if candidates and constraint_index == index:
             entity = random.choice(list(candidates))
             predicates = [
-                pred for pred in KG.triples_[entity_index] if pred not in inferential_chain
+                pred for pred in KG[entity] if pred not in inferential_chain
                 and pred not in exclude_preds
-            ] if entity_index in KG.triples_.keys() else []
+            ] if entity in KG else []
 
             if predicates:
                 predicate = random.choice(predicates)
-                if KG.triples_[entity_index][predicate]:
-                    argument = random.choice(
-                        list(KG.triples_[entity_index][predicate]))
+                if KG[entity][predicate]:
+                    argument = random.choice(list(KG[entity][predicate]))
                     constraints.append({
                         'SourceNodeIndex': index,
                         'NodePredicate': predicate,
@@ -270,14 +265,13 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
 
                     remove = set()
                     for entity in candidates:
-                        entity_index = KG.entities_[entity]
-                        if entity not in KG.entities_.keys() or \
-                                predicate not in KG.triples_[entity_index] or \
-                                argument not in KG.triples_[entity_index][predicate]:
+                        if entity not in KG or \
+                                predicate not in KG[entity] or \
+                                argument not in KG[entity][predicate]:
                             remove.add(entity)
                     candidates = candidates.difference(remove)
 
-        result = {KG.entity_to_id[x] for x in candidates}
+        result = candidates
 
     return {
         'QuestionId': str(qid),
@@ -287,9 +281,9 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
             'InferentialChain': inferential_chain,
             'Constraints': constraints,
             'Answers': [{
-                'AnswerType': 'Entity' if answer in KG.entities_.keys() else 'Value',
-                'AnswerArgument': KG.entity_to_id[answer] if answer in KG.entity_to_id.keys() else answer,
-                'EntityName': KG.entity_to_id[answer] if answer in KG.entity_to_id.keys() else answer
+                'AnswerType': 'Entity' if KG.is_entity(answer) else 'Value',
+                'AnswerArgument': answer,
+                'EntityName': get_name(answer, entity_names)
             } for answer in result.difference({topic_mid})
             ]
         }
