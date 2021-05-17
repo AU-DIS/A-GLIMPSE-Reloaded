@@ -186,7 +186,7 @@ def answer_query(KG, query):
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG.id_to_entity.keys() and predicate in KG.triples[entity]:
+            if entity in KG.triples.keys() and predicate in KG.triples[entity]:
                 candidates.update(KG.triples[entity][predicate])
         # Remove candidates that don't fit the constraints
         remove = set()
@@ -242,7 +242,7 @@ def generate_query(KG, topic_mid, chain_len=2, qid=0,
         # Add candidate answer entities
         candidates = set()
         for entity in result:
-            if entity in KG.id_to_entity.keys() and predicate in KG.triples[entity]:
+            if entity in KG.triples.keys() and predicate in KG.triples[entity]:
                 candidates.update(KG.triples[entity][predicate])
 
         if candidates and constraint_index == index:
