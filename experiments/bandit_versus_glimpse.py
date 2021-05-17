@@ -8,6 +8,7 @@ import experiment
 import glimpseonline as g
 import experiment as experiment
 import sys
+import random
 sys.path.append('..')
 
 
@@ -23,7 +24,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         graph=graph, dir=compare_bandits_dir, query_generator=query_generator)
 
     list_of_properties = [
-        "round", "glimpse_unique_hits, glimpse_no_unique_entities, glimpse_total_hits, glimpse_total, glimpse_accuracy, glimpse_speed, bandit_unique_hits, bandit_no_unique_entities, bandit_total_hits, bandit_total, bandit_accuracy, bandit_speed"
+        "round", "glimpse_unique_hits, glimpse_no_unique_entities, glimpse_total_hits, glimpse_total, glimpse_accuracy, glimpse_speed, bandit_unique_hits, bandit_no_unique_entities, bandit_total_hits, bandit_total, bandit_accuracy, bandit_speed, random_unique_hits, random_no_unique_entities, random_total_hits, random_total, random_accuracy, random_speed"
     ]
 
     annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}_generator{query_generator}"
@@ -52,13 +53,28 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
             compute_accuracy(
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
-
         delta = time.process_time() + (bandit_delta * 1)
         log.append(delta)
         all_q = exp.all_batches()
         while time.process_time() < delta:
             glimpse_online.construct_summary()
             glimpse_online.update_queries(all_q)
+
+        random_t1 = time.process_time()
+        random_triples = random.choices(
+            population=range(exp.kg().number_of_triples), k=k)
+
+        random_triples = [exp.kg().id_to_triple[i] for i in random_triples]
+        random_summary = []
+        for (e1, _, e2) in random_triples:
+            random_summary.append(e1)
+            random_summary.append(e2)
+        log.extend(list(
+            compute_accuracy(
+                exp.kg(), q, random_summary)
+        ))
+        random_t2 = time.process_time()
+        log.append(random_t2 - random_t1)
 
         exp.add_experiment_results(experiment_id, log)
         q = exp.batch(batch_size)
@@ -67,7 +83,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
     plot_combined(exp.files_[experiment_id],
                   exp.files_[experiment_id],
-                  f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}")
+                  f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}\nSize of summary {k}\nQuery generator {query_generator}\nGraph triples: {exp.kg().number_of_triples} Graph entities: {exp.kg().number_of_entities}")
 
 
 def compute_accuracy(kg, queries, summary):

@@ -21,8 +21,12 @@ def plot_combined(output_path, filename, xlabel=""):
     ax.plot(df[" glimpse_accuracy"], alpha=0.5,
             linestyle=markers[i % len(markers)], markersize=5)
 
+    ax.plot(df[" random_accuracy"], alpha=0.5,
+            linestyle=markers[i % len(markers)], markersize=5)
+
     ax.set_ylim([0, 1])
-    ax.legend(["Bandit accuracy", "Glimpse accuracy"])
+    ax.legend(["Bandit accuracy", "Glimpse accuracy",
+              "Uniform random sample accuracy"])
     ax.set_xlabel(xlabel)
     plt.tight_layout()
     plt.savefig(f"{output_path}.png")

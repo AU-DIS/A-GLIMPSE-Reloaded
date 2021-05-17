@@ -178,7 +178,7 @@ def run_compares(graph, graph_size=10**6):
     max_p = 20
     currently_active = []
     while len(processes) > 0:
-        time.sleep(1)
+        time.sleep(0.1)
         a = []
         for p in currently_active:
             if p.is_alive():
