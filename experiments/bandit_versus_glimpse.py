@@ -9,6 +9,7 @@ import glimpseonline as g
 import experiment as experiment
 import sys
 import random
+import numpy as np
 sys.path.append('..')
 
 
@@ -61,8 +62,8 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
             glimpse_online.update_queries(all_q)
 
         random_t1 = time.process_time()
-        random_triples = random.choices(
-            population=range(exp.kg().number_of_triples), k=k)
+        random_triples = np.random.choice(
+            a=range(exp.kg().number_of_triples), size=k, replace=True)
 
         random_triples = [exp.kg().id_to_triple[i] for i in random_triples]
         random_summary = []
