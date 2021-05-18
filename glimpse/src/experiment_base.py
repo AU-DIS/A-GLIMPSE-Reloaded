@@ -153,25 +153,19 @@ class KnowledgeGraph(object):
         """
         return self.number_of_relationships
 
-    def number_of_triples(self):
-        """
-        :return n_triples: number of triples in the KG
-        """
-        return self.number_of_triples
-
     def has_entity(self, entity):
         """
         :param entity: str
         :return has_entity: True if KG contains this entity
         """
-        return entity in self.entity_to_id
+        return (entity in self.entity_to_id or entity in self.id_to_entity)
 
     def has_relationship(self, relationship):
         """
         :param relationship: str
         :return has_relationship: True if KG contains this relationship
         """
-        return relationship in self.id_to_relationship
+        return (relationship in self.id_to_relationship or relationship in self.relationship_to_id)
 
     def __getitem__(self, entity):
         """
@@ -312,7 +306,6 @@ class KnowledgeGraph(object):
         :param query_log: list of queries as dicts
         :param power: number of terms in Taylor expansion
         """
-
         self.reset()
 
         # Perform random walk on the KG
@@ -329,16 +322,18 @@ class KnowledgeGraph(object):
 
         # Store entity and triple values
         for eid, val in enumerate(x):
-            entity = self.id_entity(eid)
+            entity = eid
             self.entity_value_[entity] = np.log(val + 1)
 
         for e1 in self.triples:
             for r in self.triples[e1]:
                 for e2 in self.triples[e1][r]:
                     triple = (e1, r, e2)
+                    eid1, eid2 = e1, e2
+                    r_id = r
                     # TODO not the same calculation as the paper (where is the relation)
                     self.triple_value_[triple] = np.log(
-                        x[e1] * y[r] * x[e2] + 1)
+                        x[eid1] * y[r_id] * x[eid2] + 1)
 
     def query_dir(self):
         raise NotImplementedError
@@ -431,7 +426,7 @@ class Freebase(KnowledgeGraph):
                 triple = (e1, r, e2)
                 self.add_triple(triple)
 
-                if self.number_of_triples() == head:
+                if self.number_of_triples == head:
                     return
 
 
@@ -487,7 +482,7 @@ class YAGO(KnowledgeGraph):
                 triple = (e1, r, e2)
                 self.add_triple(triple)
 
-                if self.number_of_triples() == head:
+                if self.number_of_triples == head:
                     return
 
 
@@ -525,7 +520,7 @@ class DBPedia(KnowledgeGraph):
     def get_triples(self, triple_indices):
         # //TODO: This is an ugly way of indexing triples
         t = []
-        for i, triple in enumerate(self.triples()):
+        for i, triple in enumerate(self.triples):
             if i in triple_indices:
                 t.append(triple)
         return t

@@ -107,6 +107,8 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
     logging.info("lazy " + str(heap.i))
     logging.info("updates " + str(heap.u))
     logging.info("Size of summary before random fill: " +
-                 str(S.number_of_triples()))
-    S.fill(KG.triple_to_id.keys(), K)
+                 str(S.number_of_triples))
+
+    ts = [x for x in KG.triple_to_id.keys()]
+    S.fill(ts, K)
     return S

@@ -164,7 +164,6 @@ def run_compares(graph, graph_size=10**6):
                    0.2 * graph_size, 0.3 * graph_size]
     n = 40
     query_generators = ["proprietary", "reference"]
-    #query_generators = ["reference"]
 
     processes = []
     for rf in reward_functions:
@@ -191,8 +190,8 @@ def run_compares(graph, graph_size=10**6):
 
 
 if __name__ == "__main__":
-    graph = "10pow6_edges"
-    graph_size = 10**6
+    graph = "10pow3_edges"
+    graph_size = 10**3
     run_compares(graph, graph_size)
     # run_pretrained_recompute_comparison(graph)
     # run_pretrained_comparison(graph)
