@@ -59,6 +59,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
         last_taken = 0
         for i in range(number_of_rounds):
+            print(f"Round {i}")
             log = [i+1]
             log.extend(list(compute_accuracy(
                 exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
@@ -73,19 +74,24 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
             all_q = exp.all_batches()
 
             # for _ in range(exp.kg().number_of_triples):
+            loop_time = time.process_time()
             while time.process_time() < delta:
                 glimpse_online.construct_summary()
                 glimpse_online.update_queries(all_q)
+            print(f"Loop time is {time.process_time() - loop_time}")
 
             random_t1 = time.process_time()
             random_summary = random_summaries[last_taken:last_taken+(k*2)]
             last_taken += (k*2)
 
+            print("Computing accuracy for random")
             log.extend(list(
                 compute_accuracy(
                     exp.kg(), q, random_summary)
             ))
+            print("Finished computing accuracy for random")
             random_t2 = time.process_time()
+            print(f"Random time: {random_t2 - random_t1}")
             log.append(random_t2 - random_t1)
 
             exp.add_experiment_results(experiment_id, log)
@@ -99,6 +105,9 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
 
 def compute_accuracy(kg, queries, summary):
+    summary = set(summary)
+    print(f"Computing accuracy for summary size {len(summary)}")
+    t2 = time.process_time()
     unique_entities = set()
     total_hits = 0
     total = 0
@@ -109,20 +118,21 @@ def compute_accuracy(kg, queries, summary):
         if q in summary:
             unique_hits.add(q)
             total_hits += 1
+    print(f"Accuracy time: {time.process_time() - t2}")
     return len(unique_hits), len(unique_entities), total_hits, total, len(unique_hits)/len(unique_entities)
 
 
 def glimpse_summary_to_list_of_entities(summary):
-    res = set()
+    res = []
     for e1, _, e2 in summary.triples():
-        res.add(e1)
-        res.add(e2)
+        res.append(e1)
+        res.append(e2)
     return res
 
 
 def bandit_glimpse_summary_to_list_of_entities(summary, kg):
-    res = set()
+    res = []
     for e1, _, e2 in summary.triples():
-        res.add(kg.entity_to_id[e1])
-        res.add(kg.entity_to_id[e2])
+        res.append(kg.entity_to_id[e1])
+        res.append(kg.entity_to_id[e2])
     return res

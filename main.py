@@ -190,8 +190,8 @@ def run_compares(graph, graph_size=10**6):
 
 
 if __name__ == "__main__":
-    graph = "10pow3_edges"
-    graph_size = 10**3
+    graph = "10pow6_edges"
+    graph_size = 10**6
     run_compares(graph, graph_size)
     # run_pretrained_recompute_comparison(graph)
     # run_pretrained_comparison(graph)
