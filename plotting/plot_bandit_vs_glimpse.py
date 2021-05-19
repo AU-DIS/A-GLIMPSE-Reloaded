@@ -46,4 +46,5 @@ def plot_combined(output_path, filenames, xlabel=""):
               "Uniform random sample accuracy"])
     ax.set_xlabel(xlabel)
     plt.tight_layout()
+    print(f"Saving {output_path}.png")
     plt.savefig(f"{output_path}.png")

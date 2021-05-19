@@ -20,3 +20,20 @@ def random_induced_subgraph(input_graph, output_graph, vertex_budget, edge_budge
     kg.compress_graph_indices()
 
     save_kg(kg, output_graph)
+
+
+def random_induced_by_vertices(input_graph, output_graph, vertex_budget):
+    kg = load_kg(input_graph)
+
+    vertices = np.random.choice(
+        range(kg.number_of_entities), vertex_budget, replace=False)
+
+    del kg
+    kg = DBPedia('dbpedia39')
+
+    for e1 in vertices:
+        for r in kg.triples[e1]:
+            for e2 in kg.triples[e1][r]:
+                kg.add_triple((e1, r, e2))
+    kg.compress_graph_indices()
+    save_kg(kg, output_graph)

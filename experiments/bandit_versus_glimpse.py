@@ -29,7 +29,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
     ]
 
     experiment_files = []
-    number_of_aggregations = 1
+    number_of_aggregations = 3
 
     for a in range(number_of_aggregations):
         annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}_generator{query_generator}_{a}"
@@ -49,9 +49,15 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         glimpse_online = g.Online_GLIMPSE(
             exp.kg(), k, bandit="exp3", reward_function=rf)
 
-        random_summaries = np.random.choice(
-            range(exp.kg().number_of_entities), int(k * number_of_rounds), replace=True)
+        random_triples = np.random.choice(
+            range(exp.kg().number_of_triples), int(k * number_of_rounds), replace=True)
+        random_summaries = []
+        for i in random_triples:
+            e1, _, e2 = exp.kg().id_to_triple[i]
+            random_summaries.append(e1)
+            random_summaries.append(e2)
 
+        last_taken = 0
         for i in range(number_of_rounds):
             log = [i+1]
             log.extend(list(compute_accuracy(
@@ -72,7 +78,8 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
                 glimpse_online.update_queries(all_q)
 
             random_t1 = time.process_time()
-            random_summary = random_summaries[i*k:(i+1)*k]
+            random_summary = random_summaries[last_taken:last_taken+(k*2)]
+            last_taken += (k*2)
 
             log.extend(list(
                 compute_accuracy(
