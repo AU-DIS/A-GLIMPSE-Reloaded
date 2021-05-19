@@ -28,62 +28,66 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         "round", "glimpse_unique_hits, glimpse_no_unique_entities, glimpse_total_hits, glimpse_total, glimpse_accuracy, glimpse_speed, bandit_unique_hits, bandit_no_unique_entities, bandit_total_hits, bandit_total, bandit_accuracy, bandit_speed, random_unique_hits, random_no_unique_entities, random_total_hits, random_total, random_accuracy, random_speed"
     ]
 
-    annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}_generator{query_generator}"
+    experiment_files = []
+    number_of_aggregations = 1
 
-    experiment_id = exp.create_experiment(
-        list_of_properties, annotation, comment=f"Bandit vs GLIMPSE graph={graph}, number of rounds = {number_of_rounds}, kproportion={k_proportion} query generator {query_generator}")
+    for a in range(number_of_aggregations):
+        annotation = f"graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}_generator{query_generator}_{a}"
 
-    exp.begin_experiment(experiment_id)
+        experiment_id = exp.create_experiment(
+            list_of_properties, annotation, comment=f"Bandit vs GLIMPSE graph={graph}, number of rounds = {number_of_rounds}, kproportion={k_proportion} query generator {query_generator}")
 
-    k = int(k_proportion * exp.kg().number_of_entities)
-    q = exp.batch(batch_size)
-    t1 = time.process_time()
-    glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
-    t2 = time.process_time()
-    bandit_delta = t2 - t1
-    glimpse_online = g.Online_GLIMPSE(
-        exp.kg(), k, bandit="exp3", reward_function=rf)
+        exp.begin_experiment(experiment_id)
 
-    for i in range(number_of_rounds):
-        log = [i+1]
-        log.extend(list(compute_accuracy(
-            exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
-        log.append(t2 - t1)
-        bandit_summary = glimpse_online.construct_summary()
-        log.extend(list(
-            compute_accuracy(
-                exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
-        ))
-        delta = time.process_time() + (bandit_delta * 1)
-        log.append(delta)
-        all_q = exp.all_batches()
-        while time.process_time() < delta:
-            glimpse_online.construct_summary()
-            glimpse_online.update_queries(all_q)
-
-        random_t1 = time.process_time()
-        random_triples = np.random.choice(
-            a=range(exp.kg().number_of_triples), size=k, replace=True)
-
-        random_triples = [exp.kg().id_to_triple[i] for i in random_triples]
-        random_summary = []
-        for (e1, _, e2) in random_triples:
-            random_summary.append(e1)
-            random_summary.append(e2)
-        log.extend(list(
-            compute_accuracy(
-                exp.kg(), q, random_summary)
-        ))
-        random_t2 = time.process_time()
-        log.append(random_t2 - random_t1)
-
-        exp.add_experiment_results(experiment_id, log)
+        k = int(k_proportion * exp.kg().number_of_entities)
         q = exp.batch(batch_size)
+        t1 = time.process_time()
+        glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
+        t2 = time.process_time()
+        bandit_delta = t2 - t1
+        print(bandit_delta)
+        glimpse_online = g.Online_GLIMPSE(
+            exp.kg(), k, bandit="exp3", reward_function=rf)
 
-    exp.end_experiment(experiment_id)
+        random_summaries = np.random.choice(
+            range(exp.kg().number_of_entities), int(k * number_of_rounds), replace=True)
 
-    plot_combined(exp.files_[experiment_id],
-                  exp.files_[experiment_id],
+        for i in range(number_of_rounds):
+            log = [i+1]
+            log.extend(list(compute_accuracy(
+                exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
+            log.append(t2 - t1)
+            bandit_summary = glimpse_online.construct_summary()
+            log.extend(list(
+                compute_accuracy(
+                    exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
+            ))
+            delta = time.process_time() + (bandit_delta)
+            log.append(delta)
+            all_q = exp.all_batches()
+
+            # for _ in range(exp.kg().number_of_triples):
+            while time.process_time() < delta:
+                glimpse_online.construct_summary()
+                glimpse_online.update_queries(all_q)
+
+            random_t1 = time.process_time()
+            random_summary = random_summaries[i*k:(i+1)*k]
+
+            log.extend(list(
+                compute_accuracy(
+                    exp.kg(), q, random_summary)
+            ))
+            random_t2 = time.process_time()
+            log.append(random_t2 - random_t1)
+
+            exp.add_experiment_results(experiment_id, log)
+            q = exp.batch(batch_size)
+
+        exp.end_experiment(experiment_id)
+        experiment_files.append(exp.files_[experiment_id])
+
+    plot_combined(exp.files_[experiment_id], experiment_files,
                   f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}\nSize of summary {k}\nQuery generator {query_generator}\nGraph triples: {exp.kg().number_of_triples} Graph entities: {exp.kg().number_of_entities}")
 
 

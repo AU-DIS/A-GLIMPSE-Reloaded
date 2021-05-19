@@ -162,7 +162,7 @@ def run_compares(graph, graph_size=10**6):
     ks = [0.01, 0.1, 0.2, 0.3]
     batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
                    0.2 * graph_size, 0.3 * graph_size]
-    n = 40
+    n = 20
     query_generators = ["proprietary", "reference"]
 
     processes = []
@@ -174,7 +174,7 @@ def run_compares(graph, graph_size=10**6):
                                 args=(graph, n, k, bs, rf, query_generator))
                     processes.append(p)
 
-    max_p = 20
+    max_p = 10
     currently_active = []
     while len(processes) > 0:
         time.sleep(0.1)
@@ -190,8 +190,8 @@ def run_compares(graph, graph_size=10**6):
 
 
 if __name__ == "__main__":
-    graph = "10pow3_edges"
-    graph_size = 10**3
+    graph = "10pow6_edges"
+    graph_size = 10**6
     run_compares(graph, graph_size)
     # run_pretrained_recompute_comparison(graph)
     # run_pretrained_comparison(graph)
