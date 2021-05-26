@@ -37,3 +37,8 @@ def random_induced_by_vertices(input_graph, output_graph, vertex_budget):
                 kg.add_triple((e1, r, e2))
     kg.compress_graph_indices()
     save_kg(kg, output_graph)
+
+
+def random_induced_by_size_and_ratio(input_graph, output_graph, number_vertices, number_edges):
+    kg = load_kg(input_graph)
+    pass

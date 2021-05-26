@@ -158,12 +158,16 @@ def plot_all_pretrained_comparison(graph, deltas):
 
 
 def run_compares(graph, graph_size=10**6):
-    reward_functions = ["kg", "binary"]
+    #reward_functions = ["kg", "binary"]
+    reward_functions = ["kg"]
     ks = [0.01, 0.1, 0.2, 0.3]
-    batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
-                   0.2 * graph_size, 0.3 * graph_size]
+    # batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
+    #               0.2 * graph_size, 0.3 * graph_size]
+    batch_sizes = [0.01 * graph_size, 0.1 * graph_size]
+
     n = 10
-    query_generators = ["proprietary", "reference"]
+    #query_generators = ["proprietary", "reference"]
+    query_generators = ["proprietary"]
 
     processes = []
     for rf in reward_functions:
