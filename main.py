@@ -181,7 +181,7 @@ def run_compares(graph, graph_size=10**6):
                                 args=(graph, n, k, bs, rf, query_generator))
                     processes.append(p)
 
-    max_p = 10
+    max_p = 1
     currently_active = []
     while len(processes) > 0:
         time.sleep(0.1)
