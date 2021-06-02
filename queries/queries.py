@@ -1,6 +1,7 @@
 import math
 from random import shuffle
 import numpy as np
+import time
 from human_id import generate_id
 
 
@@ -23,10 +24,10 @@ class Queries(object):
             self.internal_entities_.extend([e1, e2])
 
         self.internal_entities_.extend(self.generate_queries(
-            1000 * 10))
+            batch_size * 2))
 
         shuffle(self.internal_entities_)
-
+        np.random.seed(int(time.time()))
         self.iteration_count_ = 1
 
     def __contains__(self, entity):

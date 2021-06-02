@@ -18,6 +18,7 @@ class exp3_efficient_bandit(object):
         self.reward_min = 0
         self.reward_max = 1
         self.round = 0
+        self.debug_been_chosen = set()
         if model_path is not None:
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
@@ -61,22 +62,14 @@ class exp3_efficient_bandit(object):
         # We return index of choice, the choice and the round
         return self.choice
 
-    def choose_triples(self, k):
-        triples = list()
-        # print("Choosing triples")
-        while len(triples) < k:
-            c = heap.hsample(self.distribution)
-            # c = random.sample(range(len(self.weights)), 1)[0]
-            triples.append(c)
-        triples = zip(triples, self.kg.get_triples(triples))
-        return triples
-
-    def choose_k(self, k):
+    def choose_k(self, k, debug=False):
         entities = list()
         # logging.debug("Choosing triples")
         while len(entities) < k:
             c = heap.hsample(self.distribution)
             entities.append(c)
+            if debug:
+                self.debug_been_chosen.add(c)
 
         return entities
 

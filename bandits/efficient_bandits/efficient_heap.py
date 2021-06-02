@@ -3,9 +3,9 @@
 
 
 import numpy as np
+import time
 from numpy.random import uniform
 import math
-
 
 
 def update(S, k, v):
@@ -20,9 +20,7 @@ def update(S, k, v):
 
 def sumheap(w):
     "Create sumheap from weights `w` in O(n) time."
-
-
-
+    np.random.seed(int(time.time()))
     n = len(w)
     d = int(2**np.ceil(np.log2(n)))  # number of intermediates
     S = np.zeros(2*d)                # intermediates + leaves

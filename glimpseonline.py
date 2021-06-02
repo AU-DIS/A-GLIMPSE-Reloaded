@@ -30,10 +30,10 @@ class Online_GLIMPSE(object):
     def save_model(self, model_path):
         self.bandit.save_model(model_path)
 
-    def construct_summary(self):
+    def construct_summary(self, debug=False):
         s = Summary(self.KG)
 
-        self.choices = self.bandit.choose_k(self.K)
+        self.choices = self.bandit.choose_k(self.K, debug)
         self.choices = self.indices_to_triples()
         s.fill(self.choices, self.K)
         return s

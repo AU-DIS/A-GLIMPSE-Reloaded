@@ -12,6 +12,7 @@ from subgraphs import random_induced_subgraph
 from theoretical.exp3_subgraph import plot_combined_theoretical
 from experiments.timed_bandit_trainer import run_on_graph
 import experiments.pretrained_bandit_versus_glimpse as pretrained
+import experiments.bandit_weight as weight
 from plotting.plot_bandit_vs_glimpse import plot_combined
 from experiments.bandit_versus_glimpse import run_compare_experiment
 import time
@@ -159,11 +160,13 @@ def plot_all_pretrained_comparison(graph, deltas):
 
 def run_compares(graph, graph_size=10**6):
     #reward_functions = ["kg", "binary"]
-    reward_functions = ["kg"]
-    ks = [0.01, 0.1, 0.2, 0.3]
+    reward_functions = ["binary"]
+    #ks = [0.01, 0.1, 0.2, 0.3]
+    ks = [0.1, 0.2]
     # batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
     #               0.2 * graph_size, 0.3 * graph_size]
-    batch_sizes = [0.01 * graph_size, 0.1 * graph_size]
+    #batch_sizes = [100, 1000]
+    batch_sizes = [10]
 
     n = 10
     #query_generators = ["proprietary", "reference"]
@@ -194,8 +197,9 @@ def run_compares(graph, graph_size=10**6):
 
 
 if __name__ == "__main__":
-    graph = "10pow6_edges"
-    graph_size = 10**6
+    #graph = "top_triples_10pow3"
+    graph = "10pow3_edges"
+    graph_size = 10**3
     run_compares(graph, graph_size)
     # run_pretrained_recompute_comparison(graph)
     # run_pretrained_comparison(graph)
