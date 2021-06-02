@@ -72,13 +72,13 @@ def run_bandits_on_subgraph(subgraph, edge_budget, experiment_name):
         for expname in exp.files_.keys():
             filenames.append(exp.files_[expname])
 
-    with open(f"experiments_results/{experiment_name}.txt", "w+") as f:
+    with open(f"replacement_results/{experiment_name}.txt", "w+") as f:
 
         f.writelines(filenames)
 
     labels = {filename: round for filename, round in zip(filenames, rounds)}
     plot_combined_theoretical(
-        f"experiments_results/binary_new_queries_{edge_budget}", filenames, labels)
+        f"replacement_results/binary_new_queries_{edge_budget}", filenames, labels)
 
 
 def find_regret_file(dir):
@@ -94,14 +94,14 @@ def extract_number_of_rounds(filename):
 
 
 def plot_bandit_run(size, files):
-    files = [f"experiments_results/{f}" for f in files]
+    files = [f"replacement_results/{f}" for f in files]
 
     filenames = [f"{dir}/{find_regret_file(dir)}" for dir in files]
     labels = {filename: extract_number_of_rounds(
         filename) for filename in filenames}
 
     plot_combined_theoretical(
-        f"experiments_results/{size}", filenames, labels)
+        f"replacement_results/{size}", filenames, labels)
 
 
 def run_timed_training(graph, deltas):
@@ -152,7 +152,7 @@ def plot_all_pretrained_comparison(graph, deltas):
         for delta in deltas:
             for n in recompute_n:
                 for filename in filenames:
-                    filename = f"experiments_results/timed_bandits_timed_run_{graph}_{reward_function}_{delta}/{filename}"
+                    filename = f"replacement_results/timed_bandits_timed_run_{graph}_{reward_function}_{delta}/{filename}"
                     p = Process(target=plot_combined,
                                 args=(filename, filename))
                     p.start()
@@ -162,11 +162,11 @@ def run_compares(graph, graph_size=10**6):
     #reward_functions = ["kg", "binary"]
     reward_functions = ["binary"]
     #ks = [0.01, 0.1, 0.2, 0.3]
-    ks = [0.1, 0.2]
+    ks = [0.1, 0.2, 0.5]
     # batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
     #               0.2 * graph_size, 0.3 * graph_size]
     #batch_sizes = [100, 1000]
-    batch_sizes = [10]
+    batch_sizes = [100]
 
     n = 10
     #query_generators = ["proprietary", "reference"]

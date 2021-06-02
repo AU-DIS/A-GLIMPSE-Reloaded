@@ -32,7 +32,7 @@ class Experiment(object):
                 self.kg_, adversarial_degree=adversarial_degree, batch_size=batch_size
             )
 
-        self.path_ = f"experiments_results/{self.id}"
+        self.path_ = f"replacement_results/{self.id}"
         self.write_buffers_ = {}
         self.write_every_ = 1000**2
         self.files_ = {}

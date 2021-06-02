@@ -20,9 +20,9 @@ except ModuleNotFoundError:
 
 
 def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proportion=0.01, batch_size=10, rf="binary", query_generator="proprietary"):
-    d = f"{graph}revised_accuracy"
-    if not path.exists(f"experiments_results/{d}"):
-        os.mkdir(f"experiments_results/{d}")
+    d = f"{graph}revised_accuracy_10xtriple"
+    if not path.exists(f"replacement_results/{d}"):
+        os.mkdir(f"replacement_results/{d}")
 
     compare_bandits_dir = f"{d}/graph{graph}_norounds{number_of_rounds}_bs{batch_size}_kprop{k_proportion}_rf{rf}_generator{query_generator}"
 
@@ -64,15 +64,6 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         glimpse_online = g.Online_GLIMPSE(
             exp.kg(), k, bandit="exp3", reward_function=rf, gamma=gamma)
 
-        random_triples = np.random.choice(
-            range(exp.kg().number_of_triples), int(k * number_of_rounds), replace=True)
-        random_summaries = []
-        for i in random_triples:
-            e1, _, e2 = exp.kg().id_to_triple[i]
-            random_summaries.append(e1)
-            random_summaries.append(e2)
-
-        last_taken = 0
         for i in range(number_of_rounds):
             log = [i+1]
             log.extend(list(compute_accuracy(
@@ -94,13 +85,18 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
                     exp.add_experiment_results(regret_id, [r])
 
             random_t1 = time.process_time()
-            random_summary = random_summaries[last_taken:last_taken+(k*2)]
-            last_taken += (k*2)
+            random_triples = np.random.choice(
+                range(exp.kg().number_of_triples), k, replace=False)
+            random_summaries = []
+            for i in random_triples:
+                e1, _, e2 = exp.kg().id_to_triple[i]
+                random_summaries.append(e1)
+                random_summaries.append(e2)
 
             #print("Computing accuracy for random")
             log.extend(list(
                 compute_accuracy(
-                    exp.kg(), q, random_summary)
+                    exp.kg(), q, random_summaries)
             ))
             #print("Finished computing accuracy for random")
             random_t2 = time.process_time()
@@ -116,7 +112,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         regret_files.append(exp.files_[regret_id])
 
     plot_bandit_weights(glimpse_online.bandit, 100,
-                        f"experiments_results/{compare_bandits_dir}/{annotation}_bandit")
+                        f"replacement_results/{compare_bandits_dir}/{annotation}_bandit")
 
     plot_combined(f"{exp.files_[experiment_id]}_{gamma}", experiment_files,
                   f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}\nSize of summary {k}\nQuery generator {query_generator}\nGraph triples: {exp.kg().number_of_triples} Graph entities: {exp.kg().number_of_entities}")

@@ -63,15 +63,15 @@ class exp3_efficient_bandit(object):
         return self.choice
 
     def choose_k(self, k, debug=False):
-        entities = list()
+        entities = set()
         # logging.debug("Choosing triples")
         while len(entities) < k:
             c = heap.hsample(self.distribution)
-            entities.append(c)
+            entities.add(c)
             if debug:
                 self.debug_been_chosen.add(c)
 
-        return entities
+        return list(entities)
 
     # IMPORTANT, WE GIVE A VECTOR OF REWARDS, WHERE EACH ENTRY EQUALS A REWARD FOR A CHOICE
     # WE CHOOSE K CHOICES IN A DIFFERENT FUNCTION, SO WE MUST GIVE K REWARDS
