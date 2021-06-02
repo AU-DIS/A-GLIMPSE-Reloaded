@@ -45,7 +45,7 @@ def plot_combined(output_path, filenames, xlabel=""):
               "Uniform random sample accuracy"])
     ax.set_xlabel(xlabel)
     plt.tight_layout()
-    print(f"Saving {output_path}.png")
+    print(f"Saving {output_path}.png based on {len(filenames)} files")
     plt.savefig(f"{output_path}.png")
     plot_unique_over_time(f"{output_path}_unique", filenames)
 
@@ -70,7 +70,7 @@ def plot_unique_over_time(output_path, filenames):
     ax.set_ylabel("Number of unique entities")
     ax.set_xlabel("Rounds")
     plt.tight_layout()
-    print(f"Saving {output_path}.png")
+    print(f"Saving {output_path}.png based on {len(filenames)} files")
     plt.savefig(f"{output_path}.png")
 
 
@@ -102,7 +102,7 @@ def plot_combined_regret(output_path, filenames, xlabel=""):
     ax.set_xlabel(f"{xlabel}\nPearson correlation coefficient {correlation}")
     ax.set_ylabel("Normalized regret")
     plt.tight_layout()
-    print(f"Saving {output_path}.png")
+    print(f"Saving {output_path}.png based on {len(filenames)} files")
     plt.savefig(f"{output_path}.png")
 
 
@@ -122,8 +122,8 @@ def plot_bandit_weights(bandit, top_k=100, output="bandit"):
     plt.grid(linestyle='--', linewidth=0.5)
     ax.scatter(range(len(bandit.weights)), bandit.weights, c=colours)
     #ax.set_ylim([0, 1])
-    ax.set_xlabel("Choices")
-    ax.set_ylabel("Probability")
+    ax.set_xlabel("Choice")
+    ax.set_ylabel("Weight")
     plt.tight_layout()
     print(f"Saving {output}.png")
     plt.savefig(f"{output}.png")

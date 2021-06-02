@@ -162,13 +162,13 @@ def run_compares(graph, graph_size=10**6):
     #reward_functions = ["kg", "binary"]
     reward_functions = ["binary"]
     #ks = [0.01, 0.1, 0.2, 0.3]
-    ks = [0.1, 0.2, 0.5]
+    ks = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
     # batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
     #               0.2 * graph_size, 0.3 * graph_size]
     #batch_sizes = [100, 1000]
-    batch_sizes = [100]
+    batch_sizes = [20]
 
-    n = 10
+    n = 20
     #query_generators = ["proprietary", "reference"]
     query_generators = ["proprietary"]
 
@@ -181,19 +181,9 @@ def run_compares(graph, graph_size=10**6):
                                 args=(graph, n, k, bs, rf, query_generator))
                     processes.append(p)
 
-    max_p = 1
-    currently_active = []
-    while len(processes) > 0:
-        time.sleep(0.1)
-        a = []
-        for p in currently_active:
-            if p.is_alive():
-                a.append(p)
-        if len(a) <= max_p:
-            p = processes.pop()
-            a.append(p)
-            p.start()
-        currently_active = a
+    for p in processes:
+        p.start()
+        p.join()
 
 
 if __name__ == "__main__":

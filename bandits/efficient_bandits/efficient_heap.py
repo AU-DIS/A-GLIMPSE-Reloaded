@@ -8,6 +8,9 @@ from numpy.random import uniform
 import math
 
 
+random_samples = list(uniform(0, 1, 100000))
+
+
 def update(S, k, v):
     "Update value position `k` in time O(log n)."
     d = len(S)
@@ -56,10 +59,14 @@ def sample(w, u):
 
 
 def hsample(S):
+    global random_samples
     "Sample from sumheap, O(log n) per sample."
     offset = len(S)//2  # number of internal nodes.
     # random probe
-    u = uniform(0, 1)
+    u = random_samples.pop()
+    if len(random_samples) == 0:
+        random_samples = list(uniform(0, 1, 100000))
+
     p = S[1] * u
     # Use binary search to find the index of the largest CDF (represented as a
     # heap) value that is less than a random probe.
