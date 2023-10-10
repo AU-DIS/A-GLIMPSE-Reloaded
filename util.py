@@ -1,10 +1,13 @@
 import glimpse.src.query as query
 import glimpse.src.user as user
+from glimpse.src.experiment_base import DBPedia, save_kg
+#from glimpse.src.base import DBPedia
 import numpy as np
 from importlib import reload
 import urllib.request
 from bs4 import BeautifulSoup
 import requests
+from queries.queries import Queries
 
 reload(user)
 reload(query)
@@ -79,9 +82,16 @@ def calculateAccuracyAndTotals(user_log_test_u, summary):
                 if summary.has_entity(iri):
                     count += 1
                     total_count += 1
-            accuracies.append(count / total_answers)
+            accuracies.append(coimportunt / total_answers)
 
     return np.mean(np.array(accuracies)), total_entities, total_count
 
 if __name__ == "__main__":
-    downLoadDBPedia39()
+    kg=DBPedia()
+    kg.load()
+    save_kg(kg,'dbpedia39')
+
+    #q = Queries(kg=kg).generate_queries(10)
+    #print(q)
+    #generate_queries()
+    #downLoadDBPedia39()

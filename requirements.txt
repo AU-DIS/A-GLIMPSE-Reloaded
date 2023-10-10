@@ -3,3 +3,6 @@ bs4
 requests
 scipy
 human-id
+matplotlib
+pandas
+scikit-learn

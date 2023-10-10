@@ -83,7 +83,7 @@ def positive_int(value):
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--kg', choices=list(KG_MAPPING.keys()), default='YAGO',
+    parser.add_argument('--kg', choices=list(KG_MAPPING.keys()), default='DBPedia',
                         help='KG to summarize')
     parser.add_argument('--n-queries', type=positive_int, default=200,
                         help='Number of queries to simulate per user. Default is 200.')

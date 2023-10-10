@@ -5,8 +5,8 @@ import numpy as np
 
 def random_induced_subgraph(input_graph, output_graph, vertex_budget, edge_budget):
     kg = load_kg(input_graph)
-
-    triples = random.sample(kg.id_to_triple.keys(), edge_budget)
+    print(len(kg.id_to_triple.keys()))
+    triples = random.sample(list(kg.id_to_triple.keys()), edge_budget)
     triples = [kg.id_to_triple[triple] for triple in triples]
 
     triples_unindixed = [
@@ -59,3 +59,7 @@ def random_induced_by_size_and_ratio(input_graph, output_graph, number_vertices)
 
     kg.compress_graph_indices()
     save_kg(kg, output_graph)
+
+
+if __name__ == "__main__":
+    random_induced_subgraph('dbpedia39', 'test_sub_graph', None, 100000)

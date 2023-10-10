@@ -182,16 +182,18 @@ def run_compares(graph, graph_size=10**6):
                     processes.append(p)
 
     for p in processes:
+        #Too much parralell if splitting this
         p.start()
         p.join()
-
+     
 
 if __name__ == "__main__":
     #graph = "top_triples_10pow3"
-    graph = "10pow3_edges"
+    graph = "test_sub_graph"
     graph_size = 10**3
+    #run_on_graph()
     run_compares(graph, graph_size)
-    # run_pretrained_recompute_comparison(graph)
+    #run_pretrained_recompute_comparison(graph)
     # run_pretrained_comparison(graph)
     # run_timed_training(graph)
     # plot_all_pretrained_comparison(graph)
