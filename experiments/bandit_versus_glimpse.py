@@ -39,7 +39,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
     experiment_files = []
     regret_files = []
-    number_of_aggregations = 20
+    number_of_aggregations = 1
     processes = []
     i = 0
     max_threads = 10
@@ -61,44 +61,50 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         experiment_files.append(exp.files_[experiment_id])
         regret_files.append(exp.files_[regret_id])
 
-        p = Process(target=run_experiment, args=(exp, k, rf, batch_size,
-                    number_of_rounds, regret_id, experiment_id, glimpse_online, gamma, compare_bandits_dir, annotation, True if a == number_of_aggregations-1 else False))
+        #p = Process(target=run_experiment, args=(exp, k, rf, batch_size,
+        #            number_of_rounds, regret_id, experiment_id, glimpse_online, gamma, compare_bandits_dir, annotation, True if a == number_of_aggregations-1 else False))
 
-        processes.append(p)
+        #processes.append(p)
+        run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experiment_id, glimpse_online, gamma, compare_bandits_dir, annotation, True if a == number_of_aggregations-1 else False)
 
-    while len(processes) > 0:
-        run = []
-        for _ in range(max_threads):
-            if len(processes) > 0:
-                p = processes.pop()
-                p.start()
-                run.append(p)
-        for p in run:
-            p.join()
+    #while len(processes) > 0:
+    #    run = []
+    #    for _ in range(max_threads):
+    #        if len(processes) > 0:
+    #            p = processes.pop()
+    #            p.start()
+    #            run.append(p)
+    #    for p in run:
+    #        p.join()
 
     plot_combined(f"{experiment_files[-1]}_{gamma}", experiment_files,
                   f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}\nSize of summary {k}\nQuery generator {query_generator}\nGraph triples: {exp.kg().number_of_triples} Graph entities: {exp.kg().number_of_entities}")
 
     plot_combined_regret(f"{regret_files[-1]}_regret", regret_files,
-                         f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}\nSize of summary {k}\nQuery generator {query_generator}\nGraph triples: {exp.kg().number_of_triples} Graph entities: {exp.kg().number_of_entities}")
+                        f"Number of rounds {number_of_rounds}\nk_proportion {k_proportion}\nbatch_size {batch_size}\nReward function {rf}\nSize of summary {k}\nQuery generator {query_generator}\nGraph triples: {exp.kg().number_of_triples} Graph entities: {exp.kg().number_of_entities}")
 
 
 def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experiment_id, glimpse_online, gamma, compare_bandits_dir, annotation, plot_bandit=False):
+    #q = exp.all_batches()
     q = exp.batch(batch_size)
+    
     t1 = time.process_time()
     glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
     t2 = time.process_time()
     bandit_delta = t2 - t1
-    print(bandit_delta)
+    print(f"Bandit delta: {bandit_delta}")
 
     for i in range(number_of_rounds):
+        print(f"Round: {i+1} of {number_of_rounds}")
         log = [i+1]
         log.extend(list(compute_accuracy(
             exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
         log.append(t2 - t1)
         bandit_summary = glimpse_online.construct_summary(True)
-        for r in glimpse_online.update_queries(q):
-            exp.add_experiment_results(regret_id, [r])
+        #for r in glimpse_online.update_queries(q):
+        #    exp.add_experiment_results(regret_id, [r])
+        exp.add_experiment_results(regret_id, [sum(glimpse_online.update_queries(q))])
+
 
         log.extend(list(
             compute_accuracy(
@@ -108,11 +114,12 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         log.append(delta)
         all_q = exp.all_batches()
 
-        for _ in range(int(exp.kg().number_of_triples * 1)):
+        #for _ in range(int(exp.kg().number_of_triples * 1)):
             # while time.process_time() < delta:
-            glimpse_online.construct_summary()
-            for r in glimpse_online.update_queries(all_q):
-                exp.add_experiment_results(regret_id, [r])
+        glimpse_online.construct_summary()
+        #for r in glimpse_online.update_queries(all_q):
+        #    exp.add_experiment_results(regret_id, [r])
+        exp.add_experiment_results(regret_id, [sum(glimpse_online.update_queries(q))])
 
         random_t1 = time.process_time()
         random_triples = np.random.choice(
@@ -134,12 +141,13 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         log.append(random_t2 - random_t1)
 
         exp.add_experiment_results(experiment_id, log)
-        #q = exp.batch(batch_size)
+        if i%5 == 0:
+            q = exp.batch(batch_size)
 
     exp.end_experiment(experiment_id)
     exp.end_experiment(regret_id)
     if plot_bandit:
-        plot_bandit_weights(glimpse_online.bandit, 100,
+       plot_bandit_weights(glimpse_online.bandit, 100,
                             f"replacement_results/{compare_bandits_dir}/{annotation}_bandit")
 
 

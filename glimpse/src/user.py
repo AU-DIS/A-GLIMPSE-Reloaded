@@ -9,7 +9,8 @@ from importlib import reload
 from collections import defaultdict
 
 from .query import generate_query, load_question, load_questions_from_file
-from glimpse.src import query
+#from glimpse.src import query
+from . import query
 
 
 reload(query)

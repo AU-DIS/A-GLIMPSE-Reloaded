@@ -8,5 +8,11 @@ kg = ""
 
 def load_kg():
     global kg
-    kg = DBPedia('dbpedia39')
+    kg = DBPedia()
     kg.load()
+
+#if __name__ == "__main__":
+#    global kg
+#    kg = DBPedia()
+#    generate_query()
+#    load_kg()

@@ -14,7 +14,7 @@ from .algorithms import query_vector, random_walk_with_restart, query_vector_rdf
 # TODO: Replace these data directories with your own paths
 FREEBASE_DATA_DIR = '/x/tsafavi/data/WebQSDP/data/'
 YAGO_DATA_DIR = '/x/tsafavi/data/yago3/'
-DBPEDIA_DATA_DIR = '/mnt/d/A-GLIMPSE/'
+DBPEDIA_DATA_DIR = '/home/kasper/Reps/A-GLIMPSE-Reloaded/dbpedia39'
 
 
 class KnowledgeGraph(object):
@@ -411,7 +411,7 @@ class YAGO(KnowledgeGraph):
 
 class DBPedia(KnowledgeGraph):
 
-    def __init__(self, rdf_gz='facts.gz', query_dir='queries/', mid_dir='by-mid/', include_properties=False):
+    def __init__(self, rdf_gz='/home/kasper/Reps/A-GLIMPSE-Reloaded/dbpedia39/rdf_gz', query_dir='', mid_dir='', include_properties=False):
         """
         :param rdf_gz: folder for data
         :param query_dir: directory where queries are saved as json

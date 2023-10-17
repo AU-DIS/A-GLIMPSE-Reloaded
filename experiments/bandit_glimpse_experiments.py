@@ -32,11 +32,11 @@ def bandit_glimpse(k, rounds, experiment, gamma=0.07, bandit="exp3m", same_queri
     experiment.begin_experiment(regret_id)
     # experiment.begin_experiment(normal_id)
 
-    q = experiment.batch()
+    q = experiment.batch(k)
 
     # If we are going to be using the same queries
     if same_queries:
-        q = experiment.batch()
+        q = experiment.batch(k)
 
     rf = "kg" if binary_reward is not True else "binary"
 
@@ -51,7 +51,7 @@ def bandit_glimpse(k, rounds, experiment, gamma=0.07, bandit="exp3m", same_queri
         if same_queries:
             q = q
         else:
-            q = experiment.batch()
+            q = experiment.batch(k)
 
         regrets = glimpse_online.update_queries(q)
         t3 = time.time()

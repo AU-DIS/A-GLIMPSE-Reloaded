@@ -59,17 +59,22 @@ class exp3_efficient_bandit(object):
 
     def choose_triple(self):
         self.choice = heap.hsample(self.distribution)
-        # We return index of choice, the choice and the round
+        # We return index of cqblhoice, the choice and the round
         return self.choice
 
     def choose_k(self, k, debug=False):
-        entities = set()
+        entities = list()
+        values = list()
         # logging.debug("Choosing triples")
-        while len(entities) < k:
-            c = heap.hsample(self.distribution)
-            entities.add(c)
+        for _ in range(k):
+            c, v = heap.hsample(self.distribution)
+            entities.append(c)
+            values.append(v)
+            heap.update(self.distribution, c, 0)
             if debug:
                 self.debug_been_chosen.add(c)
+        for e,v in zip(entities,values):
+            heap.update(self.distribution, e, v)
 
         return list(entities)
 

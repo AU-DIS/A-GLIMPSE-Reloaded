@@ -62,4 +62,4 @@ def random_induced_by_size_and_ratio(input_graph, output_graph, number_vertices)
 
 
 if __name__ == "__main__":
-    random_induced_subgraph('dbpedia39', 'test_sub_graph', None, 100000)
+    random_induced_subgraph('dbpedia39', 'test_sub_graph', None, 1000)

@@ -2,6 +2,7 @@ from src.metrics import total_query_log_metrics, average_query_log_metrics
 from src.glimpse import SummaryMethod, GLIMPSE
 from src.user import query_log_by_mids, query_log_by_topics
 from src.base import YAGO, DBPedia, Freebase
+from src.experiment_base import save_kg, load_kg
 from sklearn.model_selection import train_test_split
 from time import time
 import argparse
@@ -15,8 +16,8 @@ logging.basicConfig(format='[%(asctime)s] - %(message)s',
 # Available choices for user input arguments in main
 # TODO: Change these to point to your local data directories
 KG_MAPPING = {
-    'YAGO': YAGO(query_dir='queries/final/', mid_dir='queries/by-mid/'),
-    'Freebase': Freebase(query_dir='queries/final/'),
+    #'YAGO': YAGO(query_dir='queries/final/', mid_dir='queries/by-mid/'),
+    #'Freebase': Freebase(query_dir='queries/final/'),
     'DBPedia': DBPedia()
 }
 
@@ -123,12 +124,15 @@ def main():
     # Load the KG into memory
     logging.info('Loading {}'.format(KG.name()))
     KG.load()
+    #KG = load_kg('dbpedia39')
     logging.info('Loaded {}'.format(KG.name()))
 
     # Number of triples for summary
     K = int(args.percent_triples * KG.number_of_triples())
     logging.info('K = {}'.format(K))
-
+    save_kg(KG, 'dbpedia39')
+    logging.info(f'KG.topic_mids() = {KG.topic_mids()} and args.n_topics = {args.n_topics}')
+    
     # Simulate users with specified parameters
     for user in range(args.n_users):
         logging.info('---Simulating user {}---'.format(user))

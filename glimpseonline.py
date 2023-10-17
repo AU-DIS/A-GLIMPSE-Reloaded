@@ -7,6 +7,8 @@ from importlib import reload
 import gc as garbage
 import bandits.efficient_bandits.exp3m as exp3m
 import bandits.efficient_bandits.exp3 as exp3
+import bandits.efficient_bandits.qbl as qbl
+import cProfile
 
 
 class Online_GLIMPSE(object):
@@ -22,9 +24,11 @@ class Online_GLIMPSE(object):
         #self.bandit = e.exp3_efficient_bandit(kg, model_path, initial_entities, gamma)
         if bandit == "exp3m":
             self.bandit = exp3m.exp3_m(kg, model_path, initial_entities, gamma)
-        else:
+        elif bandit == "exp3":
             self.bandit = exp3.exp3_efficient_bandit(
                 kg, model_path, initial_entities, gamma)
+        else:
+            self.bandit = qbl.QBLBandit(kg, model_path, initial_entities)
         self.choices = list()
 
     def save_model(self, model_path):
@@ -32,7 +36,7 @@ class Online_GLIMPSE(object):
 
     def construct_summary(self, debug=False):
         s = Summary(self.KG)
-
+        #cProfile.runctx("self.bandit.choose_k(self.K, debug)",globals(), locals())
         self.choices = self.bandit.choose_k(self.K, debug)
         self.choices = self.indices_to_triples()
         s.fill(self.choices, self.K)

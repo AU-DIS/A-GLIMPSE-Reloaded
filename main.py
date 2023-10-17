@@ -1,5 +1,6 @@
 from subgraphs import random_induced_subgraph
-from experiments.subgraph_experiments import subgraph_experiments
+from experiments.subgraph_experiments import subgraph_experiments, run_bandits_on_subgraph
+from experiments.bandit_glimpse_experiments import bandit_glimpse
 import os
 from time import process_time, sleep
 from glimpse.src.experiment_base import DBPedia, KnowledgeGraph, Freebase, load_kg, save_kg
@@ -15,7 +16,9 @@ import experiments.pretrained_bandit_versus_glimpse as pretrained
 import experiments.bandit_weight as weight
 from plotting.plot_bandit_vs_glimpse import plot_combined
 from experiments.bandit_versus_glimpse import run_compare_experiment
+
 import time
+import cProfile
 
 
 def makeTrainingTestSplit(answers, kg):
@@ -46,12 +49,11 @@ def run_glimpse_once():
               )
 
 
-def run_bandits_on_subgraph(subgraph, edge_budget, experiment_name):
+def run_bandits_on_subgraph(subgraph, k, rounds, edge_budget, experiment_name):
     proportion = 0.01
-    k = proportion * edge_budget
 
-    rounds = [int((i * 100 * edge_budget)/(proportion * edge_budget))
-              for i in range(1, 5)]
+    #rounds = [int((i * 100 * edge_budget)/(proportion * edge_budget))
+    #          for i in range(1, 5)]
 
     processes = []
     exps = []
@@ -160,15 +162,15 @@ def plot_all_pretrained_comparison(graph, deltas):
 
 def run_compares(graph, graph_size=10**6):
     #reward_functions = ["kg", "binary"]
-    reward_functions = ["binary"]
+    reward_functions = ["kg"]
     #ks = [0.01, 0.1, 0.2, 0.3]
-    ks = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+    ks = [0.1]#, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
     # batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
     #               0.2 * graph_size, 0.3 * graph_size]
     #batch_sizes = [100, 1000]
-    batch_sizes = [20]
+    batch_sizes = [100]
 
-    n = 20
+    n = 1000
     #query_generators = ["proprietary", "reference"]
     query_generators = ["proprietary"]
 
@@ -177,23 +179,28 @@ def run_compares(graph, graph_size=10**6):
         for k in ks:
             for bs in batch_sizes:
                 for query_generator in query_generators:
-                    p = Process(target=run_compare_experiment,
-                                args=(graph, n, k, bs, rf, query_generator))
-                    processes.append(p)
+                    run_compare_experiment(graph, n, k, bs, rf, query_generator)
+                    #p = Process(target=run_compare_experiment,
+                    #            args=(graph, n, k, bs, rf, query_generator))
+                    #processes.append(p)
 
-    for p in processes:
+    #for p in processes:
         #Too much parralell if splitting this
-        p.start()
-        p.join()
+        #p.start()
+        #p.join()
      
 
 if __name__ == "__main__":
     #graph = "top_triples_10pow3"
     graph = "test_sub_graph"
     graph_size = 10**3
+    #run_glimpse_once()
     #run_on_graph()
+    #run_bandits_on_subgraph(graph, 100, [10], 1000, "This_is_test")
+    
+    #cProfile.runctx('run_compares(graph, graph_size)', globals(), locals())
     run_compares(graph, graph_size)
-    #run_pretrained_recompute_comparison(graph)
+    #un_pretrained_recompute_comparison(graph, [0.1])
     # run_pretrained_comparison(graph)
     # run_timed_training(graph)
     # plot_all_pretrained_comparison(graph)

@@ -79,7 +79,7 @@ def hsample(S):
             # Value is in right subtree. Subtract mass under left subtree.
             p -= left
             i += 1
-    return i - offset
+    return i - offset, S[i]
 
 
 def main():

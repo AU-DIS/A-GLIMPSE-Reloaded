@@ -84,8 +84,8 @@ def plot_combined_regret(output_path, filenames, xlabel=""):
     for df in dfs[1:]:
         regret += df["regret"]
 
-    regret = np.cumsum([x/len(dfs) for x in regret])
-    regret = regret/len(regret)
+    regret = np.cumsum(regret)
+    #regret = regret/len(regret)
 
     xrange = pd.Series(range(len(regret)))
     yrange = pd.Series(regret)
@@ -97,10 +97,10 @@ def plot_combined_regret(output_path, filenames, xlabel=""):
     ax.plot(range(len(regret)), regret, alpha=0.5,
             linestyle=markers[i % len(markers)], markersize=5)
 
-    ax.set_ylim([0, 1])
+    #ax.set_ylim([0, 1])
     ax.legend(["Regret"])
     ax.set_xlabel(f"{xlabel}\nPearson correlation coefficient {correlation}")
-    ax.set_ylabel("Normalized regret")
+    ax.set_ylabel("Regret")
     plt.tight_layout()
     print(f"Saving {output_path}.png based on {len(filenames)} files")
     plt.savefig(f"{output_path}.png")

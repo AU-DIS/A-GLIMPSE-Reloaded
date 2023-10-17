@@ -19,7 +19,7 @@ from .algorithms import query_vector, random_walk_with_restart, query_vector_rdf
 # TODO: Replace these data directories with your own paths
 FREEBASE_DATA_DIR = '/x/tsafavi/data/WebQSDP/data/'
 YAGO_DATA_DIR = '/x/tsafavi/data/yago3/'
-DBPEDIA_DATA_DIR = 'dbpedia39'
+DBPEDIA_DATA_DIR = '/home/kasper/Reps/A-GLIMPSE-Reloaded/dbpedia39'
 
 
 def save_kg(kg, filename):
@@ -331,6 +331,9 @@ class KnowledgeGraph(object):
                     triple = (e1, r, e2)
                     eid1, eid2 = e1, e2
                     r_id = r
+                    #DEBUG
+                    #if r_id == len(y):
+                    #    print(self.triples[e1])
                     # TODO not the same calculation as the paper (where is the relation)
                     self.triple_value_[triple] = np.log(
                         x[eid1] * y[r_id] * x[eid2] + 1)
@@ -488,7 +491,7 @@ class YAGO(KnowledgeGraph):
 
 class DBPedia(KnowledgeGraph):
 
-    def __init__(self, rdf_gz='facts.gz', query_dir='queries/', mid_dir='by-mid/', include_properties=False):
+    def __init__(self, rdf_gz='/home/kasper/Reps/A-GLIMPSE-Reloaded/dbpedia39/rdf_gz', query_dir='query_dir/', mid_dir='by-mid/', include_properties=False):
         """
         :param rdf_gz: folder for data
         :param query_dir: directory where queries are saved as json
