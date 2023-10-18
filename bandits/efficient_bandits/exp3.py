@@ -119,7 +119,7 @@ class exp3_efficient_bandit(object):
             if e2 in queries:
                 reward = 0.5
             self.give_reward(reward, choice_index)
-            regrets.append(self.reward_max-reward)
+            regrets.append(reward)
         return regrets
 
     def create_binary_rewards(self, queries, summary):
@@ -138,7 +138,7 @@ class exp3_efficient_bandit(object):
             choice_index = self.kg.triple_to_id[(e1, r, e2)]
             reward = 1 if (e1 in queries or e2 in queries) else 0
             self.give_reward(reward, choice_index)
-            regrets.append(self.reward_max-reward)
+            regrets.append(reward)
         return regrets
 
     def create_rewards_triples(self, queries, index_triple_set):

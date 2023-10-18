@@ -39,7 +39,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
     experiment_files = []
     regret_files = []
-    number_of_aggregations = 1
+    number_of_aggregations = 10
     processes = []
     i = 0
     max_threads = 10
@@ -57,7 +57,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         k = int(k_proportion * exp.kg().number_of_entities)
         gamma = 0.07
         glimpse_online = g.Online_GLIMPSE(
-            exp.kg(), k, bandit="exp3", reward_function=rf, gamma=gamma)
+            exp.kg(), k, bandit="qbl", reward_function=rf, gamma=gamma)
         experiment_files.append(exp.files_[experiment_id])
         regret_files.append(exp.files_[regret_id])
 
@@ -88,6 +88,7 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
     #q = exp.all_batches()
     q = exp.batch(batch_size)
     
+    
     t1 = time.process_time()
     glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
     t2 = time.process_time()
@@ -103,6 +104,8 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         bandit_summary = glimpse_online.construct_summary(True)
         #for r in glimpse_online.update_queries(q):
         #    exp.add_experiment_results(regret_id, [r])
+        
+        #Assumes all unique query entities can be in the summary
         exp.add_experiment_results(regret_id, [sum(glimpse_online.update_queries(q))])
 
 
@@ -116,10 +119,10 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
 
         #for _ in range(int(exp.kg().number_of_triples * 1)):
             # while time.process_time() < delta:
-        glimpse_online.construct_summary()
+        #glimpse_online.construct_summary()
         #for r in glimpse_online.update_queries(all_q):
         #    exp.add_experiment_results(regret_id, [r])
-        exp.add_experiment_results(regret_id, [sum(glimpse_online.update_queries(q))])
+        #exp.add_experiment_results(regret_id, [sum(glimpse_online.update_queries(q))])
 
         random_t1 = time.process_time()
         random_triples = np.random.choice(
@@ -141,8 +144,9 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         log.append(random_t2 - random_t1)
 
         exp.add_experiment_results(experiment_id, log)
-        if i%5 == 0:
+        if i%50 == 0:
             q = exp.batch(batch_size)
+            
 
     exp.end_experiment(experiment_id)
     exp.end_experiment(regret_id)

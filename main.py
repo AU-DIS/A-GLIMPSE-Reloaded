@@ -168,7 +168,7 @@ def run_compares(graph, graph_size=10**6):
     # batch_sizes = [0.01 * graph_size, 0.1 * graph_size,
     #               0.2 * graph_size, 0.3 * graph_size]
     #batch_sizes = [100, 1000]
-    batch_sizes = [100]
+    batch_sizes = [50]
 
     n = 1000
     #query_generators = ["proprietary", "reference"]

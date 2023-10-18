@@ -119,7 +119,7 @@ class QBLBandit(object):
             #print(choice_index)
             reward = 1 if (e1 in queries or e2 in queries) else 0
             self.update([choice_index], [reward])
-            regrets.append(self.reward_max-reward)
+            regrets.append(reward)
         return regrets
     
     def create_rewards(self, queries, summary):
@@ -142,5 +142,5 @@ class QBLBandit(object):
             if e2 in queries:
                 reward = 0.5
             self.update([choice_index], [reward])
-            regrets.append(self.reward_max-reward)
+            regrets.append(1-reward)
         return regrets
