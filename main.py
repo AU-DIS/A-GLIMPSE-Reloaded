@@ -199,6 +199,7 @@ if __name__ == "__main__":
     #run_bandits_on_subgraph(graph, 100, [10], 1000, "This_is_test")
     
     #cProfile.runctx('run_compares(graph, graph_size)', globals(), locals())
+    
     run_compares(graph, graph_size)
     #un_pretrained_recompute_comparison(graph, [0.1])
     # run_pretrained_comparison(graph)

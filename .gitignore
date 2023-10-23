@@ -2,6 +2,7 @@
 DBPedia3.9Full
 dbpedia3.9
 *.pyc
-dbpedia39
 ._.DS_Store
 .vscode/
+*.bz2
+*.npy

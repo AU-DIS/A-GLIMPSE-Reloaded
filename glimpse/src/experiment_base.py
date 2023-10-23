@@ -491,7 +491,7 @@ class YAGO(KnowledgeGraph):
 
 class DBPedia(KnowledgeGraph):
 
-    def __init__(self, rdf_gz='/home/kasper/Reps/A-GLIMPSE-Reloaded/dbpedia39/rdf_gz', query_dir='query_dir/', mid_dir='by-mid/', include_properties=False):
+    def __init__(self, rdf_gz='./dbpedia39/rdf_gz', query_dir='query_dir/', mid_dir='by-mid/', include_properties=False):
         """
         :param rdf_gz: folder for data
         :param query_dir: directory where queries are saved as json
