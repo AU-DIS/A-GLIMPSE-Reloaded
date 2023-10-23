@@ -67,7 +67,7 @@ subgraphs can be generated. See examples of how in **`subgraphs.py`**. Things to
 
 # Multithreaded experiments
 
-To run multiple experiments in parallelle, simply uncoment
+To run multiple experiments in parallelle, simply uncomment
 ```Python
                     #p = Process(target=run_compare_experiment,
                     #            args=(graph, n, k, bs, rf, query_generator))
@@ -84,6 +84,6 @@ in `run_compares()` and remove the old `run_compare_experiment()` line above it.
 # Other comments
 The regret tracking is a bit weird so ignore those plots for now and focus on the accuracy plots.
 
-I will verify code behaviour and implementations as I build a c++ implementation. That may take some time, so if you spot anything that is straight up wrong let me know so I can take a look. 
+I will verify code behaviour and implementations as I build a C++ implementation. That may take some time, so if you spot anything that is straight up wrong let me know so I can take a look. 
 
 Feel free to ask questions! 
