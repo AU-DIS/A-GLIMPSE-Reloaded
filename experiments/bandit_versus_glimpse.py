@@ -39,7 +39,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
     experiment_files = []
     regret_files = []
-    number_of_aggregations = 10
+    number_of_aggregations = 10 # NUMBER OF REPEATS
     processes = []
     i = 0
     max_threads = 10
@@ -55,7 +55,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
         exp.begin_experiment(experiment_id)
 
         k = int(k_proportion * exp.kg().number_of_entities)
-        gamma = 0.07
+        gamma = 0.1  # CHANGE THIS 0 to 1
         glimpse_online = g.Online_GLIMPSE(
             exp.kg(), k, bandit="qbl", reward_function=rf, gamma=gamma)
         experiment_files.append(exp.files_[experiment_id])

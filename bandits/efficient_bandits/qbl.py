@@ -3,7 +3,7 @@ import random
 #import cProfile
 
 class QBLBandit(object):
-    def __init__(self, kg, model_path=None, initial_entities=None) -> None:
+    def __init__(self, kg, model_path=None, initial_entities=None, gamma=0.1) -> None:
         self.arms: list[int] = []
         #random.shuffle(self.arms)
         #for i, arm in enumerate(self.arms):
@@ -12,6 +12,7 @@ class QBLBandit(object):
         self.k: int = kg.number_of_triples
         self.kg = kg
         self.weights = []
+        self.gamma = gamma 
 
         if model_path is not None:
             raise Exception("Not implemented") 
@@ -87,7 +88,7 @@ class QBLBandit(object):
 
             is_rewarding: bool = (
                 weighted_global_avg
-                < local_avg * random.uniform(1-0.1,1+0.1)   
+                < local_avg * random.uniform(1-self.gamma,1+self.gamma)   
             )
             
             #logging.info(f'Global avg: {weighted_global_avg}, Local_avg: {local_avg}')
