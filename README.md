@@ -11,14 +11,16 @@ The interest for Knowledge Graph summaries is growing, and methods such as a GLI
 2. Download dbpedia39 
     
     2.1 run `downLoadDBPedia39()` from **`util.py`** to download the requiried rdf files into folder **`dbpedia/rdf_gz/`**
+
+    2.3 outcomment `downLoadDBPedia39()` and uncomment the graph load and save instead. Run it. 
     
     2.2 run **`subgraphs.py`** to create a simple smaller test graph for quick experimentation. Its generation can freely be modified.
 
     2.3 if any step fail. You may have to update the folder path to **`dbpedia/rdf_gz`** in both  **`glimpse/src/experiment_base.py`** and **`glimpse/src/base.py`** for `class DBPedia(KnowledgeGraph):`.
 
-3. run **`main.py`** and check if it works! 
+4. run **`main.py`** and check if it works! 
 
-4. Plots are saved in **`replacements_results/`**. Beware that a lot of naming is legacy stats that may or may not mean anything.
+5. Plots are saved in **`replacements_results/`**. Beware that a lot of naming is legacy stats that may or may not mean anything.
 
 # How, where and what to modify
 There is 4 things of interest to modify.
