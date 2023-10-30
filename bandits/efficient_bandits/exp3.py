@@ -19,12 +19,14 @@ class exp3_efficient_bandit(object):
         self.reward_max = 1
         self.round = 0
         self.debug_been_chosen = set()
+        self.prob = np.full(self.number_of_triples,
+                                   0.0)
         if model_path is not None:
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
         elif initial_entities is None:
             self.weights = np.full(self.number_of_triples,
-                                   1/self.number_of_triples)
+                                   1)
             self.distribution = heap.sumheap(self.weights)
         elif initial_entities is not None:
             priviliged_triples = set()
@@ -67,7 +69,12 @@ class exp3_efficient_bandit(object):
         values = list()
         # logging.debug("Choosing triples")
         for _ in range(k):
-            c, v = heap.hsample(self.distribution)
+            if random.uniform(0.0,1.0) < self.gamma:
+                c = random.randrange(0, self.number_of_triples)
+                v = self.weights[c]
+            else:
+                c, v = heap.hsample(self.distribution)
+            self.prob[c] = ((1-self.gamma)*math.exp(self.distribution[self.number_of_triples + c]-self.distribution[1])+(self.gamma/self.number_of_triples))
             entities.append(c)
             values.append(v)
             heap.update(self.distribution, c, 0)
@@ -75,7 +82,6 @@ class exp3_efficient_bandit(object):
                 self.debug_been_chosen.add(c)
         for e,v in zip(entities,values):
             heap.update(self.distribution, e, v)
-
         return list(entities)
 
     # IMPORTANT, WE GIVE A VECTOR OF REWARDS, WHERE EACH ENTRY EQUALS A REWARD FOR A CHOICE
@@ -83,18 +89,14 @@ class exp3_efficient_bandit(object):
 
     def give_reward(self, reward, i):
         global reward_max, reward_min
+        
+        #scaled_reward = (reward - self.reward_min) / \
+        #    (self.reward_max - self.reward_min)
 
-        scaled_reward = (reward - self.reward_min) / \
-            (self.reward_max - self.reward_min)
-
-        offset = len(self.distribution)//2
-
-        estimated_reward = 1.0 * scaled_reward / \
-            (self.distribution[offset + i])
+        estimated_reward = reward / self.prob[i]
 
         # If using negative, extract original value for proability updates
-        self.weights[i] = self.weights[i] * math.exp(estimated_reward *
-                                                     self.gamma / len(self.weights))
+        self.weights[i] = self.weights[i] + self.gamma*(estimated_reward*self.number_of_triples)
 
         heap.update(self.distribution, i, self.weights[i])
         # heap.check(self.distribution, 1)
@@ -156,9 +158,9 @@ class exp3_efficient_bandit(object):
             acc_reward = 0
             (e1, _, e2) = triple
             if e1 in queries:
-                acc_reward += 50
+                acc_reward += 0.5
             if e2 in queries:
-                acc_reward += 50
+                acc_reward += 0.5
             rewards.append(acc_reward)
             choice_indices.append(index)
         return rewards, choice_indices

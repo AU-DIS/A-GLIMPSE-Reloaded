@@ -13,12 +13,18 @@ random_samples = list(uniform(0, 1, 100000))
 
 def update(S, k, v):
     "Update value position `k` in time O(log n)."
-    d = len(S)
-    i = d//2 + k
+    
+    i = (len(S))//2 + k 
+    #print(k, i, len(S))
     S[i] = v
     while i > 0:
         i //= 2
-        S[i] = S[2*i] + S[2*i + 1]
+        if 2*i+1 == len(S):
+            S[i] = S[2*i]
+        elif S[2*i] > S[2*i+1]:
+            S[i] = S[2*i]+math.log(math.exp(S[2*i+1]-S[2*i])+1)
+        else:
+            S[i] = S[2*i+1]+math.log(math.exp(S[2*i]-S[2*i+1])+1)
 
 
 def sumheap(w):
@@ -26,12 +32,17 @@ def sumheap(w):
     np.random.seed(int(time.time()))
     n = len(w)
     d = int(2**np.ceil(np.log2(n)))  # number of intermediates
-    S = np.zeros(2*d)                # intermediates + leaves
+    S = np.zeros(2*n+1)                # intermediates + leaves
    #print(n, d)
-    S[d:d+n] = w                   # store `w` at leaves.
-    for i in reversed(range(1, d)):
-        S[i] = S[2*i] + S[2*i + 1]
+    for i in range(0, n):
+        update(S, i, w[i])
 
+    #S[d:d+n] = w                   # store `w` at leaves.
+    #for i in reversed(range(1, d)):
+    #    if S[2*i] > S[2*i+1]:
+    #        S[i] = S[2*i]+math.log(math.exp(S[2*i+1]-S[2*i])+1)
+    #    else:
+    #        S[i] = S[2*i+1]+math.log(math.exp(S[2*i]-S[2*i+1])+1)
     return S
 
 
@@ -63,11 +74,10 @@ def hsample(S):
     "Sample from sumheap, O(log n) per sample."
     offset = len(S)//2  # number of internal nodes.
     # random probe
-    u = random_samples.pop()
+    p = random_samples.pop()
     if len(random_samples) == 0:
         random_samples = list(uniform(0, 1, 100000))
 
-    p = S[1] * u
     # Use binary search to find the index of the largest CDF (represented as a
     # heap) value that is less than a random probe.
     i = 1
@@ -75,10 +85,11 @@ def hsample(S):
         # Determine if the value is in the left or right subtree.
         i *= 2
         left = S[i]
-        if p > left:
+        if p > math.exp(left-S[1]):
             # Value is in right subtree. Subtract mass under left subtree.
-            p -= left
+            p -= math.exp(left-S[1])
             i += 1
+    #print(i, offset, len(S))
     return i - offset, S[i]
 
 
