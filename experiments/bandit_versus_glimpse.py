@@ -106,16 +106,17 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         print(f"Round: {i+1} of {number_of_rounds}")
         t1 = time.process_time()
         glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
-
+        t2 = time.process_time()
         log = [i+1]
         log.extend(list(compute_accuracy(
             exp.kg(), q, glimpse_summary_to_list_of_entities(glimpse_summary))))
-        t2 = time.process_time()
+        
         bandit_delta = t2 - t1
         log.append(t2 - t1)
 
         b1 = time.process_time()
         bandit_summary = glimpse_online.construct_summary(True)
+        delta = time.process_time() - b1 
         #for r in glimpse_online.update_queries(q):
         #    exp.add_experiment_results(regret_id, [r])
         
@@ -127,9 +128,9 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
             compute_accuracy(
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(bandit_summary, exp.kg()))
         ))
-        delta = time.process_time() - b1 
+        
         log.append(delta)
-        all_q = exp.all_batches()
+        #all_q = exp.all_batches()
         #print(f"Bandit time: {delta}")
         #for _ in range(int(exp.kg().number_of_triples * 1)):
             # while time.process_time() < delta:
@@ -140,7 +141,7 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
 
         e1 = time.process_time()
         exp3_summary = exp3_online.construct_summary(True)
-
+        delta = time.process_time() - e1 
         exp.add_experiment_results(regret_id, [sum(exp3_online.update_queries(q))])
 
 
@@ -148,7 +149,7 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
             compute_accuracy(
                 exp.kg(), q, bandit_glimpse_summary_to_list_of_entities(exp3_summary, exp.kg()))
         ))
-        delta = time.process_time() - e1 
+        
         log.append(delta)
 
 
@@ -160,14 +161,14 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
             e1, _, e2 = exp.kg().id_to_triple[i]
             random_summaries.append(e1)
             random_summaries.append(e2)
-
+        random_t2 = time.process_time()
         #print("Computing accuracy for random")
         log.extend(list(
             compute_accuracy(
                 exp.kg(), q, random_summaries)
         ))
         #print("Finished computing accuracy for random")
-        random_t2 = time.process_time()
+        
         #print(f"Random time: {random_t2 - random_t1}")
         log.append(random_t2 - random_t1)
 
