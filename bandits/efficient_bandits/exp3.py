@@ -20,13 +20,13 @@ class exp3_efficient_bandit(object):
         self.round = 0
         self.debug_been_chosen = set()
         self.prob = np.full(self.number_of_triples,
-                                   0.0)
+                                   gamma/self.number_of_triples)
         if model_path is not None:
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
         elif initial_entities is None:
             self.weights = np.full(self.number_of_triples,
-                                   1)
+                                   1.0)
             self.distribution = heap.sumheap(self.weights)
         elif initial_entities is not None:
             priviliged_triples = set()
