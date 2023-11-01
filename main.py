@@ -160,7 +160,7 @@ def plot_all_pretrained_comparison(graph, deltas):
                     p.start()
 
 
-def run_compares(graph, graph_size=10**6):
+def run_compares(graph):
     #reward_functions = ["kg", "binary"]
     reward_functions = ["kg"]
     #ks = [0.01, 0.1, 0.2, 0.3]
@@ -192,15 +192,14 @@ def run_compares(graph, graph_size=10**6):
 
 if __name__ == "__main__":
     #graph = "top_triples_10pow3"
-    graph = "test_sub_graph"
-    graph_size = 10**3
+    graph = "test_sub_graph1000000"
     #run_glimpse_once()
     #run_on_graph()
     #run_bandits_on_subgraph(graph, 100, [10], 1000, "This_is_test")
     
     #cProfile.runctx('run_compares(graph, graph_size)', globals(), locals())
     
-    run_compares(graph, graph_size)
+    run_compares(graph)
     #un_pretrained_recompute_comparison(graph, [0.1])
     # run_pretrained_comparison(graph)
     # run_timed_training(graph)
