@@ -105,7 +105,8 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
     for i in range(number_of_rounds):
         print(f"Round: {i+1} of {number_of_rounds}")
         t1 = time.process_time()
-        glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())
+        if i%200==0:
+            glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches()[-batch_size:])
         t2 = time.process_time()
         log = [i+1]
         log.extend(list(compute_accuracy(
