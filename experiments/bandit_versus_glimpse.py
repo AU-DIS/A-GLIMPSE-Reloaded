@@ -93,7 +93,7 @@ def run_compare_experiment(graph="10pow3_edges", number_of_rounds=10, k_proporti
 
 def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experiment_id, glimpse_online, exp3_online,gamma, compare_bandits_dir, annotation, plot_bandit=False):
     #q = exp.all_batches()
-    q = exp.batch(batch_size)
+    #q = exp.batch(batch_size)
     
     
     #t1 = time.process_time()
@@ -103,10 +103,12 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
     #print(f"Bandit delta: {bandit_delta}")
 
     for i in range(number_of_rounds):
-        print(f"Round: {i+1} of {number_of_rounds}")
+        if i%50 == 0:
+            q = exp.batch(batch_size)
+        #print(f"Round: {i+1} of {number_of_rounds}")
         t1 = time.process_time()
         if i%200==0:
-            glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches()[-batch_size:])
+            glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches())#[:-batch_size])
         t2 = time.process_time()
         log = [i+1]
         log.extend(list(compute_accuracy(
@@ -158,8 +160,8 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         random_triples = np.random.choice(
             range(exp.kg().number_of_triples), k, replace=False)
         random_summaries = []
-        for i in random_triples:
-            e1, _, e2 = exp.kg().id_to_triple[i]
+        for j in random_triples:
+            e1, _, e2 = exp.kg().id_to_triple[j]
             random_summaries.append(e1)
             random_summaries.append(e2)
         random_t2 = time.process_time()
@@ -174,8 +176,7 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
         log.append(random_t2 - random_t1)
 
         exp.add_experiment_results(experiment_id, log)
-        if i%50 == 0:
-            q = exp.batch(batch_size)
+        
             
 
     exp.end_experiment(experiment_id)
