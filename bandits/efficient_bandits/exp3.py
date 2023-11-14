@@ -117,9 +117,9 @@ class exp3_efficient_bandit(object):
             choice_index = self.kg.triple_to_id[(e1, r, e2)]
             reward = 0
             if e1 in queries:
-                reward = 0.5
+                reward += 0.5
             if e2 in queries:
-                reward = 0.5
+                reward += 0.5
             self.give_reward(reward, choice_index)
             regrets.append(reward)
         return regrets
@@ -158,9 +158,9 @@ class exp3_efficient_bandit(object):
             acc_reward = 0
             (e1, _, e2) = triple
             if e1 in queries:
-                acc_reward += 0.9
+                acc_reward += 0.5
             if e2 in queries:
-                acc_reward += 0.1
+                acc_reward += 0.5
             rewards.append(acc_reward)
             choice_indices.append(index)
         return rewards, choice_indices

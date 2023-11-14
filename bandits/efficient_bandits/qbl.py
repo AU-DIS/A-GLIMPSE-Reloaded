@@ -139,9 +139,9 @@ class QBLBandit(object):
             choice_index = self.kg.triple_to_id[(e1, r, e2)]
             reward = 0
             if e1 in queries:
-                reward = 0.9
+                reward += 0.5
             if e2 in queries:
-                reward = 0.1
+                reward += 0.5
             self.update([choice_index], [reward])
             regrets.append(1-reward)
         return regrets
