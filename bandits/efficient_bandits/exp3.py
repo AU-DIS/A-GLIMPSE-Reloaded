@@ -158,9 +158,9 @@ class exp3_efficient_bandit(object):
             acc_reward = 0
             (e1, _, e2) = triple
             if e1 in queries:
-                acc_reward += 0.5
+                acc_reward += 0.9
             if e2 in queries:
-                acc_reward += 0.5
+                acc_reward += 0.1
             rewards.append(acc_reward)
             choice_indices.append(index)
         return rewards, choice_indices
