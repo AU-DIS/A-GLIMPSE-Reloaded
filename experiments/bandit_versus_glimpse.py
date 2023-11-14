@@ -101,13 +101,14 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
     #t2 = time.process_time()
    # bandit_delta = t2 - t1
     #print(f"Bandit delta: {bandit_delta}")
+    delta_rounds = 10
 
     for i in range(number_of_rounds):
-        #if i%batch_size == 0:
-        q = exp.batch(batch_size)
+        if i%delta_rounds == 0:
+            q = exp.batch(batch_size)
         print(f"Round: {i+1} of {number_of_rounds}")
         t1 = time.process_time()
-        if i%batch_size==0:
+        if i%delta_rounds==0:
             glimpse_summary = GLIMPSE(exp.kg(), k, exp.all_batches()[:-batch_size])
         t2 = time.process_time()
         log = [i+1]
@@ -160,7 +161,7 @@ def run_experiment(exp, k, rf, batch_size, number_of_rounds, regret_id, experime
 
 
         random_t1 = time.process_time()
-        if i%batch_size==0:
+        if i%delta_rounds==0:
 
             random_triples = np.random.choice(
                 range(exp.kg().number_of_triples), k, replace=False)
