@@ -1,5 +1,6 @@
 from .pqueue import PriorityQueue
 import random
+
 #import cProfile
 
 class QBLBandit(object):
@@ -38,9 +39,16 @@ class QBLBandit(object):
                         #arm to prio
         self.priority: dict[int, int] = {arm: i for i, arm in enumerate(self.arms)}
 
-    def choose_k(self, m: int, debug = False) -> list[int]:
+    def choose_k(self, m: int, debug = False):
+        #selected: list[int] = []
+        #for (p,v) in self.queue.lazy_topm(m):
+        #    selected.append(v)
+        #cnt = self.queue.cnt
+        #self.queue.reset_cnt()
+        #return selected, cnt
         selected: list[int] = []
         popped: list[tuple[int, int]] = []
+        
         for _ in range(m):
             pop: tuple[int, int] = self.queue.pop()  # type: ignore
             popped.append(pop)
@@ -53,8 +61,9 @@ class QBLBandit(object):
         #print()
         #print(f"Selected: {selected}")
         #print(f"TOP: {self.queue._heap[0:m]}")
-
-        return selected
+        cnt = self.queue.cnt
+        self.queue.reset_cnt()
+        return selected, cnt
 
     def update(
         self, arms_played: list[int], arms_reward: list[float]
@@ -76,7 +85,7 @@ class QBLBandit(object):
                 self.in_active_term[idx] = True
 
              
-            self.total_last_term_reward += arms_reward[0] #TODO: FIXED TO SINGLE VALUE
+            self.total_last_term_reward += arms_reward[0] #TODO: FIXED TO SINGLE UPDATE AT THE TIME
             self.last_term_reward[idx] += arms_reward[0]
             self.total_last_term_length += 1
             self.last_term_length[idx] += 1
@@ -103,13 +112,15 @@ class QBLBandit(object):
                 #self.queue.put((self.priority[idx],top[1])) #type: ignore
                 self.queue.update_elem(idx, (self.priority[idx], idx))  # type: ignore
                 self.in_active_term[idx] = False
+            
 
     def create_binary_rewards(self, queries, summary):
+       
         queries_set = set()
         for q in queries:
             queries_set.add(q)
         queries = queries_set
-
+            
         regrets = []
         #print("\n\n\n")
         for (e1, r, e2) in summary:
@@ -121,7 +132,9 @@ class QBLBandit(object):
             reward = 1 if (e1 in queries or e2 in queries) else 0
             self.update([choice_index], [reward])
             regrets.append(reward)
-        return regrets
+        cnt = self.queue.cnt
+        self.queue.reset_cnt()
+        return regrets, cnt
     
     def create_rewards(self, queries, summary):
         queries_set = set()
@@ -129,19 +142,62 @@ class QBLBandit(object):
             queries_set.add(q)
         queries = queries_set
 
-        regrets = []
-
-        for (e1, r, e2) in summary:
+        summary_entities = set()
+        for (e1,_,e2) in summary:
             e1 = self.kg.entity_to_id[e1]
             e2 = self.kg.entity_to_id[e2]
-            r = self.kg.relationship_to_id[r]
+            summary_entities.add(e1)
+            summary_entities.add(e2)
 
-            choice_index = self.kg.triple_to_id[(e1, r, e2)]
-            reward = 0
-            if e1 in queries:
-                reward += 0.9
-            if e2 in queries:
-                reward += 0.1
-            self.update([choice_index], [reward])
-            regrets.append(1-reward)
-        return regrets
+        regrets = []
+        for _ in range(1):
+            for e1 in queries:
+                if e1 not in self.kg.triples:
+                    continue
+                for r in self.kg.triples[e1]:
+                        for e2 in self.kg.triples[e1][r]:
+                            choice_index = self.kg.triple_to_id[(e1, r, e2)]
+                            reward = 0
+
+                            #We throw away knowledge we should not have. Aka. 
+                            if e1 in queries and e1 in summary_entities:
+                                reward += 1/3
+                                if e2 in queries and e2 in summary_entities:
+                                    reward += 2/3 
+
+
+                            #We may adjust the bandit with this knowledge as we can deduce it if we know the graph setting
+                            if (self.kg.id_to_entity[e1],self.kg.id_to_relationship[r],self.kg.id_to_entity[e2]) in summary:
+                                continue
+                                #self.update([choice_index], [reward])
+                                #regrets.append(1-reward)
+                            else: 
+                                #self.update([choice_index], [reward])
+                                #regrets.append(1-reward)
+                                self.total_last_term_reward += reward
+                                self.last_term_reward[choice_index] += reward
+                                #self.total_last_term_length += 1
+                                #self.last_term_length[choice_index] += 1
+
+        for _ in range(1):
+            #Normal update of QBL
+            for (e1, r, e2) in summary:
+                e1 = self.kg.entity_to_id[e1]
+                e2 = self.kg.entity_to_id[e2]
+                r = self.kg.relationship_to_id[r]
+
+                choice_index = self.kg.triple_to_id[(e1, r, e2)]
+                reward = 0
+                if e1 in queries:
+                    reward += 1/3
+                    if e2 in queries:
+                        reward += 2/3
+                self.update([choice_index], [reward])
+                regrets.append(1-reward)
+        
+
+                        
+
+        cnt = self.queue.cnt
+        self.queue.reset_cnt()
+        return regrets, cnt

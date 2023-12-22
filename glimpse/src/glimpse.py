@@ -83,6 +83,7 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
     :param power: number of terms in Taylor expansion
     :return S: Summary
     """
+    cnt = 0
     # Estimate user preferences over KG
     KG.model_user_pref(query_log, power=power, rdf_query_logs=rdf_query_logs,
                        include_relationship_prob=include_relation_prob)
@@ -92,10 +93,14 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
     S = Summary(KG)
     logging.info("T delta not zero")
     logging.info(len(heap))
+    #print(f"len: {len(heap)}")
     if len(heap) <= K:
         S.fill(heap.triples(), K)
+        #print(f"Small heap ####: {len(heap)} K: {K}")
     else:
         heap.update(S, len(heap))  # update all marginals
+        #print(heap.i)
+        #print(heap.u)
         sample_size = len(heap) if epsilon is None else \
             int(len(heap) / K * np.log(1 / epsilon))
 
@@ -104,6 +109,9 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
             triple = heap.pop()
             S.add_triple(triple)
             heap.update(S, sample_size)
+    cnt += heap.cnt
+    #print(heap.i)
+    #print(heap.u)        
     logging.info("lazy " + str(heap.i))
     logging.info("updates " + str(heap.u))
     logging.info("Size of summary before random fill: " +
@@ -111,4 +119,4 @@ def GLIMPSE(KG, K, query_log, epsilon=1e-3, power=1, rdf_query_logs=False, inclu
 
     ts = [x for x in KG.triple_to_id.keys()]
     S.fill(ts, K)
-    return S
+    return S, cnt

@@ -181,7 +181,7 @@ def plot_speed(output_path, filenames, xlabel=""):
     ax.plot(range(len(random)), np.cumsum(random), alpha=0.5,
             linestyle=markers[i % len(markers)], markersize=5)
 
-    ax.set_ylim([0, 10])
+    #ax.set_ylim([0, 10])
     ax.legend(["QBL", "Glimpse", "Exp3",
               "Uniform random sample"])
     ax.set_xlabel(xlabel)
@@ -189,3 +189,46 @@ def plot_speed(output_path, filenames, xlabel=""):
     plt.tight_layout()
     print(f"Saving {output_path}.png based on {len(filenames)} files")
     plt.savefig(f"{output_path}speed.png")
+
+
+def plot_work_count(output_path, filenames, xlabel=""):
+    markers = ['-', '--', '-.', ':']
+    ax = None
+    i = 0
+
+    dfs = [pd.read_csv(filename, skiprows=[0])
+           for filename in filenames]
+    bandit = dfs[0]["qbl_cnt"]
+    for df in dfs[1:]:
+        bandit += df["qbl_cnt"]
+    bandit = [x/len(dfs) for x in bandit]
+
+    glimpse = dfs[0]["glimpse_cnt"]
+    for df in dfs[1:]:
+        glimpse += df["glimpse_cnt"]
+    glimpse = [x/len(dfs) for x in glimpse]
+
+    exp3 = dfs[0]["exp3_cnt"]
+    for df in dfs[1:]:
+        exp3 += df["exp3_cnt"]
+    exp3 = [x/len(dfs) for x in exp3]
+  
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+    plt.grid(linestyle='--', linewidth=0.5)
+
+    ax.plot(range(len(bandit)), np.cumsum(bandit), alpha=0.5,
+            linestyle=markers[i % len(markers)], markersize=5)
+
+    ax.plot(range(len(glimpse)), np.cumsum(glimpse), alpha=0.5,
+            linestyle=markers[i % len(markers)], markersize=5)
+    
+    ax.plot(range(len(exp3)), np.cumsum(exp3), alpha=0.5,
+            linestyle=markers[i % len(markers)], markersize=5)
+
+    ax.legend(["QBL", "Glimpse", "Exp3"])
+    ax.set_xlabel(xlabel)
+    plt.title("Plot of Cumulative Work operations")
+    plt.tight_layout()
+    print(f"Saving {output_path}.png based on {len(filenames)} files")
+    plt.savefig(f"{output_path}work.png")

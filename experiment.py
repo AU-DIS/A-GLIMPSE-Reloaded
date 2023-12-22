@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 
 class Experiment(object):
-    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None, batch_size=1000, query_generator="proprietary"):
+    def __init__(self, type_string="bandit", comment="", adversarial_degree=0.01, graph=None, dir=None, name=None, batch_size=100, query_generator="proprietary"):
         if dir is None:
             self.id = generate_id()
         else:

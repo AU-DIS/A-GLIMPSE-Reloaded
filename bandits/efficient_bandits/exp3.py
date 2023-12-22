@@ -18,16 +18,20 @@ class exp3_efficient_bandit(object):
         self.reward_min = 0
         self.reward_max = 1
         self.round = 0
+        self.cnt = 0
+        
         self.debug_been_chosen = set()
         self.prob = np.full(self.number_of_triples,
                                    gamma/self.number_of_triples)
         if model_path is not None:
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
+            self.depth = math.floor(math.log2(len(self.distribution))+1)
         elif initial_entities is None:
             self.weights = np.full(self.number_of_triples,
                                    1.0)
             self.distribution = heap.sumheap(self.weights)
+            self.depth = math.floor(math.log2(len(self.distribution))+1)
         elif initial_entities is not None:
             priviliged_triples = set()
             for entity in initial_entities:
@@ -47,10 +51,13 @@ class exp3_efficient_bandit(object):
             for triple_id in priviliged_triples:
                 self.weights[triple_id] = priviliged_weight
             self.distribution = heap.sumheap(self.weights)
+            self.depth = math.floor(math.log2(len(self.distribution))+1)
+            self.cnt += self.depth*len(self.weights)
 
         elif model_path is not None:
             self.weights = np.load(model_path)
             self.distribution = heap.sumheap(self.weights)
+            self.cnt += self.depth*len(self.weights)
 
         self.gamma = gamma
         self.kg = kg
@@ -67,6 +74,8 @@ class exp3_efficient_bandit(object):
     def choose_k(self, k, debug=False):
         entities = list()
         values = list()
+        #depth = math.floor(math.log2(len(self.distribution))+1)
+        
         # logging.debug("Choosing triples")
         for _ in range(k):
             if random.uniform(0.0,1.0) < self.gamma:
@@ -74,15 +83,21 @@ class exp3_efficient_bandit(object):
                 v = self.weights[c]
             else:
                 c, v = heap.hsample(self.distribution)
+                self.cnt += self.depth
             self.prob[c] = ((1-self.gamma)*math.exp(self.distribution[self.number_of_triples + c]-self.distribution[1])+(self.gamma/self.number_of_triples))
             entities.append(c)
             values.append(v)
             heap.update(self.distribution, c, 0)
+            self.cnt += self.depth 
             if debug:
                 self.debug_been_chosen.add(c)
         for e,v in zip(entities,values):
             heap.update(self.distribution, e, v)
-        return list(entities)
+            self.cnt += self.depth
+
+        cnt = self.cnt
+        self.cnt = 0
+        return list(entities), cnt
 
     # IMPORTANT, WE GIVE A VECTOR OF REWARDS, WHERE EACH ENTRY EQUALS A REWARD FOR A CHOICE
     # WE CHOOSE K CHOICES IN A DIFFERENT FUNCTION, SO WE MUST GIVE K REWARDS
@@ -107,7 +122,39 @@ class exp3_efficient_bandit(object):
             queries_set.add(q)
         queries = queries_set
 
+        summary_entities = set()
+        for (e1,_,e2) in summary:
+            e1 = self.kg.entity_to_id[e1]
+            e2 = self.kg.entity_to_id[e2]
+            summary_entities.add(e1)
+            summary_entities.add(e2)
+
         regrets = []
+        cnt = 0
+        for _ in range(0):
+            for e1 in queries:
+                if e1 not in self.kg.triples:
+                    continue
+                for r in self.kg.triples[e1]:
+                        for e2 in self.kg.triples[e1][r]:
+                            choice_index = self.kg.triple_to_id[(e1, r, e2)]
+                            reward = 0
+
+                            #We throw away knowledge we should not have. Aka. 
+                            if e1 in queries and e1 in summary_entities:
+                                reward += 1/3
+                                if e2 in queries and e2 in summary_entities:
+                                    reward += 2/3 
+
+
+                            #We may adjust the bandit with this knowledge as we can deduce it if we know the graph setting
+                            if (self.kg.id_to_entity[e1],self.kg.id_to_relationship[r],self.kg.id_to_entity[e2]) in summary:
+                                continue
+                                #self.update([choice_index], [reward])
+                                #regrets.append(1-reward)
+                            else: 
+                                self.give_reward(reward, choice_index)
+
 
         for (e1, r, e2) in summary:
             e1 = self.kg.entity_to_id[e1]
@@ -117,12 +164,13 @@ class exp3_efficient_bandit(object):
             choice_index = self.kg.triple_to_id[(e1, r, e2)]
             reward = 0
             if e1 in queries:
-                reward += 0.9
-            if e2 in queries:
-                reward += 0.1
+                reward += 1/3
+                if e2 in queries:
+                    reward += 2/3
             self.give_reward(reward, choice_index)
+            cnt += self.depth
             regrets.append(reward)
-        return regrets
+        return regrets, cnt
 
     def create_binary_rewards(self, queries, summary):
         queries_set = set()
@@ -131,7 +179,7 @@ class exp3_efficient_bandit(object):
         queries = queries_set
 
         regrets = []
-
+        cnt = 0
         for (e1, r, e2) in summary:
             e1 = self.kg.entity_to_id[e1]
             e2 = self.kg.entity_to_id[e2]
@@ -140,13 +188,15 @@ class exp3_efficient_bandit(object):
             choice_index = self.kg.triple_to_id[(e1, r, e2)]
             reward = 1 if (e1 in queries or e2 in queries) else 0
             self.give_reward(reward, choice_index)
+            cnt += self.depth
             regrets.append(reward)
-        return regrets
+        return regrets, cnt
 
     def create_rewards_triples(self, queries, index_triple_set):
         # Substitute efficient lookup data structure here (For strings)
         rewards = []
         choice_indices = []
+        cnt = 0
         # print(type(queries[0]))
         queries_set = set()
         for qs in queries:
@@ -158,9 +208,9 @@ class exp3_efficient_bandit(object):
             acc_reward = 0
             (e1, _, e2) = triple
             if e1 in queries:
-                acc_reward += 0.9
-            if e2 in queries:
-                acc_reward += 0.1
+                acc_reward += 1/3
+                if e2 in queries:
+                    acc_reward += 2/3
             rewards.append(acc_reward)
             choice_indices.append(index)
         return rewards, choice_indices

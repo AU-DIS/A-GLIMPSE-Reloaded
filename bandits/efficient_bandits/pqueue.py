@@ -1,6 +1,7 @@
 # Original From https://github.com/denizetkar/priority-queue by denizetkar
 # Modified
 from typing import Any
+import random
 
 class PriorityQueue:
     def __init__(
@@ -11,6 +12,7 @@ class PriorityQueue:
     ):
         if arr is None:
             arr = []
+        self.cnt=0
         self._heap = arr
         self.has_higher_priority = has_higher_priority
         self.id_of = id_of
@@ -19,6 +21,9 @@ class PriorityQueue:
             self._add_elem_idx(elem=elem, idx=i)
 
         self._heapify()
+
+    def reset_cnt(self):
+        self.cnt=0
 
     def _get_elem_idxs(self, elem=None, elem_id=None):
         if elem is not None:
@@ -61,6 +66,7 @@ class PriorityQueue:
         self._add_elem_idx(elem=elem1, idx=j)
         self._remove_elem_idx(elem=elem2)
         self._add_elem_idx(elem=elem2, idx=i)
+        self.cnt += 1
 
     def _bubble_up(self, i):
         while True:
@@ -70,7 +76,7 @@ class PriorityQueue:
             if not self.has_higher_priority(self[i], self[parent_idx]):
                 return
             self._swap_elems(parent_idx, i)
-            i = parent_idx
+            i = parent_idx  
 
     def _bubble_down(self, i):
         while True:
@@ -117,6 +123,9 @@ class PriorityQueue:
         elem = self._remove_last()
         self._bubble_down(0)
         return elem
+    
+    def lazy_topm(self, m):
+        return self._heap[:m]
 
     def update_elem(self, elem_id: Any, new_elem: Any) -> None:
         idx = self._get_elem_idxs(elem_id=elem_id)
@@ -131,6 +140,29 @@ class PriorityQueue:
             self._bubble_up(idx)
         elif self.has_higher_priority(elem, new_elem):
             self._bubble_down(idx)
+
+    def update_elem_scramble(self, elem_id: Any, new_elem: Any) -> None:
+        idx = self._get_elem_idxs(elem_id=elem_id)
+        if idx is None:
+            return
+
+        elem = self._heap[idx]
+        self._heap[idx] = new_elem
+        self._remove_elem_idx(elem_id=elem_id)
+        self._add_elem_idx(elem=new_elem, idx=idx)
+        rand_idx = random.randrange(len(self._heap))
+        rand_elem = self._heap[rand_idx]
+        self._swap_elems(idx, rand_idx)
+
+        if self.has_higher_priority(new_elem, rand_elem):
+            self._bubble_up(rand_idx)
+        elif self.has_higher_priority(rand_elem, new_elem):
+            self._bubble_down(rand_idx)
+
+        if self.has_higher_priority(rand_elem, elem):
+            self._bubble_up(rand_idx)
+        elif self.has_higher_priority(elem, rand_elem):
+            self._bubble_down(rand_idx)
 
     def remove(self, elem_id):
         idx = self._get_elem_idxs(elem_id=elem_id)

@@ -254,9 +254,11 @@ class KnowledgeGraph(object):
                     triple = (e1, r, e2)
                     eid1, eid2 = self.entity_id(e1), self.entity_id(e2)
                     r_id = self.relationship_id_[r]
-                    # TODO not the same calculation as the paper (where is the relation)
+                    # Y alway 1 in this setup
                     self.triple_value_[triple] = np.log(
-                        x[eid1] * y[r_id] * x[eid2] + 1)
+                        x[eid1] * x[eid2] + 1)
+                    #self.triple_value_[triple] = np.log(
+                    #    x[eid1] * y[r_id] * x[eid2] + 1)
 
     def query_dir(self):
         raise NotImplementedError

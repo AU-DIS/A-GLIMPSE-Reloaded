@@ -39,13 +39,14 @@ class Heap(object):
         self.heap_ = []
         self.i = 0
         self.u = 0
+        self.cnt = len(KG.triple_to_id.keys())
 
         for triple in KG.triple_to_id.keys():
             e1, r, e2 = triple
             total = KG.entity_value(e1) + \
                 KG.entity_value(e2) + \
                 KG.triple_value(triple)
-
+            
             if total > 0:
                 self.heap_.append(Heap.Triple(triple, total))
 
@@ -66,6 +67,7 @@ class Heap(object):
         :param item: Triple
         """
         item.value_ = S.marginal_value(item.triple())
+        self.cnt += 1
 
     def _lazy_greedy(self, S, triples):
         """

@@ -16,8 +16,8 @@ class Queries(object):
         self.has_yielded_set_ = set()
 
         sampled_triples = np.random.choice(
-            range(kg.number_of_triples), batch_size, replace=True)
-
+            range(kg.number_of_triples), 10, replace=True)
+        print(len(sampled_triples))
         sampled_triples = [kg.id_to_triple[x] for x in sampled_triples]
         self.internal_entities_ = []
         for (e1, r, e2) in sampled_triples:
@@ -92,15 +92,24 @@ class Queries(object):
         return list(has_seen)
 
     def generate_queries(self, number_of_queries):
-        candidates = [self.internal_entities_[0]]
+        print(f"Num of queries: {number_of_queries}")
+        print(f"Internal ent: {len(self.internal_entities_)}")
+        candidates = []
+        expand_prop = 0.1
         while len(candidates) < number_of_queries:
             recycled = np.random.choice(
-                range(len(self.internal_entities_)), int(number_of_queries * (1 - self.adversarial_degree)), replace=True)
-            recycled = [self.internal_entities_[i] for i in recycled]
-            bfs_of_recycled = self.bfs(recycled)
+                self.internal_entities_[-10*self.batch_size:], math.ceil(len(self.internal_entities_[-10*self.batch_size:])*0.05), replace=True)# * (1 - self.adversarial_degree)), replace=True)
+            #recycled = [self.internal_entities_[i] for i in recycled]
+            bfs_of_recycled = self.bfs(recycled, breadth=2)
+            print(f"bfs_rec: {len(bfs_of_recycled)}")
             candidates.extend(bfs_of_recycled)
-            adversarial_entities = np.random.choice(
-                range(self.kg.number_of_entities), int(self.adversarial_degree * number_of_queries))
-            candidates.extend(adversarial_entities)
-
-        return np.random.choice(candidates, number_of_queries, replace=True)
+            val = np.random.choice([True,False], p=[1.0-self.adversarial_degree, self.adversarial_degree])
+            if True:#if not val:
+                adversarial_entities = np.random.choice(
+                range(self.kg.number_of_entities), int((len(bfs_of_recycled)+self.adversarial_degree * len(bfs_of_recycled))*self.adversarial_degree))
+                candidates.extend(adversarial_entities)
+                print(f"adv_rec: {len(adversarial_entities)}")
+        print(f"Q candidates: len {len(candidates)} setlen: {len(set(candidates))}")
+        finals = np.random.choice(candidates, number_of_queries, replace=False)
+        print(f"Return len: {len(finals)}")
+        return finals #np.random.choice(candidates, number_of_queries, replace=True)

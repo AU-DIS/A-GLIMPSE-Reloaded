@@ -54,7 +54,6 @@ def random_walk_with_restart(M, x, c=0.15, power=1):
     """
     q = c * np.copy(x)
     r = np.copy(q)  # result vector
-
     for _ in range(power):
         q = (1 - c) * M * q
         r += q

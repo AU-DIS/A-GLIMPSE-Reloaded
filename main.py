@@ -170,7 +170,7 @@ def run_compares(graph):
     #batch_sizes = [100, 1000]
     batch_sizes = [50]
 
-    n = 1000
+    n = 400
     #query_generators = ["proprietary", "reference"]
     query_generators = ["proprietary"]
 
@@ -192,7 +192,9 @@ def run_compares(graph):
 
 if __name__ == "__main__":
     #graph = "top_triples_10pow3"
-    graph = "test_sub_graph1000000"
+    #graph = "dbpedia39"
+    #graph = "test_sub_graph"
+    graph = 'bfs_graph1'
     #run_glimpse_once()
     #run_on_graph()
     #run_bandits_on_subgraph(graph, 100, [10], 1000, "This_is_test")

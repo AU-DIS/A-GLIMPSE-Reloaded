@@ -37,10 +37,10 @@ class Online_GLIMPSE(object):
     def construct_summary(self, debug=False):
         s = Summary(self.KG)
         #cProfile.runctx("self.bandit.choose_k(self.K, debug)",globals(), locals())
-        self.choices = self.bandit.choose_k(self.K, debug)
+        self.choices, cnt = self.bandit.choose_k(self.K, debug)
         self.choices = self.indices_to_triples()
         s.fill(self.choices, self.K)
-        return s
+        return s, cnt
 
     def indices_to_triples(self):
         triple_choices = []

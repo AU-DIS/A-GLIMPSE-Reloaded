@@ -37,15 +37,15 @@ class KnowledgeGraph(object):
     def __init__(self):
         """A KG is a set of entities E, a set of relationships R,
         and a set of triples E x R x E."""
-        self.number_of_relationships = -1
+        self.number_of_relationships = 0
         self.relationship_to_id = {}
         self.id_to_relationship = {}
 
-        self.number_of_entities = -1
+        self.number_of_entities = 0
         self.entity_to_id = {}
         self.id_to_entity = {}
 
-        self.number_of_triples = -1
+        self.number_of_triples = 0
         self.triples = {}
         self.id_to_triple = {}
         self.triple_to_id = {}
@@ -198,20 +198,20 @@ class KnowledgeGraph(object):
     def add_triple(self, triple):
         e1, r, e2 = triple
         if not self.has_triple(triple):
-            self.number_of_triples += 1
+            
 
             # Record new relationship
             if r not in self.relationship_to_id:
-                self.number_of_relationships += 1
                 self.relationship_to_id[r] = self.number_of_relationships
                 self.id_to_relationship[self.number_of_relationships] = r
+                self.number_of_relationships += 1
 
             # Record new entities
             for entity in [e1, e2]:
                 if entity not in self.entity_to_id:
-                    self.number_of_entities += 1
                     self.entity_to_id[entity] = self.number_of_entities
                     self.id_to_entity[self.number_of_entities] = entity
+                    self.number_of_entities += 1
 
             r_index = self.relationship_to_id[r]
             e1_index = self.entity_to_id[e1]
@@ -229,6 +229,7 @@ class KnowledgeGraph(object):
                 e1_index, r_index, e2_index)
             self.triple_to_id[(e1_index, r_index, e2_index)
                               ] = self.number_of_triples
+            self.number_of_triples += 1
 
     def entity_id(self, entity):
         """
@@ -331,12 +332,11 @@ class KnowledgeGraph(object):
                     triple = (e1, r, e2)
                     eid1, eid2 = e1, e2
                     r_id = r
-                    #DEBUG
-                    #if r_id == len(y):
-                    #    print(self.triples[e1])
-                    # TODO not the same calculation as the paper (where is the relation)
+                    # Y alway 1 in this setup
                     self.triple_value_[triple] = np.log(
-                        x[eid1] * y[r_id] * x[eid2] + 1)
+                        x[eid1] * x[eid2] + 1)
+                    #self.triple_value_[triple] = np.log(
+                    #    x[eid1] * y[r_id] * x[eid2] + 1)
 
     def query_dir(self):
         raise NotImplementedError
