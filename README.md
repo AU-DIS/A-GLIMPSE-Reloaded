@@ -1,9 +1,5 @@
-# A-GLIMPSE
-Repository for the project **Is the Exp3 algorithm viable for online Knowledge Graph summarisation?**
-
-**Abstract:**
-The interest for Knowledge Graph summaries is growing, and methods such as a GLIMPSE now exist that can compute accurate static summaries. However, this is not effective for an online setting. We explore the viability of using the Exp3 algorithm for creating such summaries in an online setting. We create a modular framework that can perform various experiments with the Exp3 algorithm and compare it against GLIMPSE. We perform a comprehensive analysis of the Exp3 algorithm to determine under what conditions it yields sublinear regret. We find this sublinear regret on DBpedia Knowledge Graphs that meet these conditions. We further explore if Exp3 summaries on these subgraphs are accurate. We find that Exp3 summaries are not accurate for online settings, and we highlight potential causes of these results.
-
+# A-GLIMPSE 
+This repository contains experimental setups to compare bandit approaches against Glimpse for online knowledgegraph summarisation.
 
 # Setup
 
@@ -54,12 +50,6 @@ You can execute multiple experiments at once multi threaded (See below). For now
 
 In **`experiments/bandit_versus_glimpse.py`** the variable `number_of_aggregations` can be set to make an average result of each experiment. `number_of_aggregations=1` executes each experiment once. `number_of_aggregations=10` executes each experiment 10 times and report the average.
 
-**The queries**
-
-TBD.
-I barely remember how this was implemented, but I believe we simply made a wrapper around GLIMPSE query generator and a few adjustable aspects.  
-
-
 **The graph**
 
 All experiments are based on dbpedia or subgraphs thereof.
@@ -82,10 +72,3 @@ To run multiple experiments in parallelle, simply uncomment
 ```
 in `run_compares()` and remove the old `run_compare_experiment()` line above it.
 
-
-# Other comments
-The regret tracking is a bit weird so ignore those plots for now and focus on the accuracy plots.
-
-I will verify code behaviour and implementations as I build a C++ implementation. That may take some time, so if you spot anything that is straight up wrong let me know so I can take a look. 
-
-Feel free to ask questions! 
